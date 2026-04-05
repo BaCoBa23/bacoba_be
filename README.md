@@ -1,7 +1,5 @@
 # 👕 Bacoba Backend - API Quản lý cửa hàng quần áo
 
-Đây là hệ thống Backend (RESTful API) phục vụ cho dự án quản lý kho hàng và bán hàng thời trang. Dự án được xây dựng theo kiến trúc phân tầng chuẩn (**N-Tier Architecture**) giúp code dễ dàng mở rộng và bảo trì.
-
 ## 🛠 Tech Stack
 
 - **Runtime:** Node.js
@@ -12,8 +10,6 @@
 ---
 
 ## 📂 Cấu trúc thư mục (Folder Structure)
-
-Dự án áp dụng **Barrel Pattern** (dùng `index.js` để gom module) và chia tách logic rõ ràng:
 
 ```text
 /src
@@ -35,7 +31,7 @@ Dự án áp dụng **Barrel Pattern** (dùng `index.js` để gom module) và c
 
 ### 1. Yêu cầu hệ thống (Prerequisites)
 
-- Node.js (Khuyến nghị bản LTS - v18 hoặc v20 trở lên)
+- Node.js
 - Máy tính đã cài đặt Git.
 
 ### 2. Cài đặt chi tiết
