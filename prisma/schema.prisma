@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Brand {
+  id        Int      @id @default(autoincrement())
+  name      String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
+model ProductType {
+  id        Int      @id @default(autoincrement())
+  name      String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
+model Attribute {
+  id              Int            @id @default(autoincrement())
+  attributeTypeId Int
+  attributeType   AttributeType? @relation(fields: [attributeTypeId], references: [id])
+  value           String
+  status          String         @default("active")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  productAttributes ProductAttribute[]
+}
+
+model AttributeType {
+  id        Int      @id @default(autoincrement())
+  name      String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attributes Attribute[]
+}
+
+model Product {
+  id       Int       @id @default(autoincrement())
+  parentId Int?
+  parent   Product?  @relation("ProductVariants", fields: [parentId], references: [id])
+  variants Product[] @relation("ProductVariants")
+
+  productTypeId Int
+  type          ProductType @relation(fields: [productTypeId], references: [id])
+
+  brandId Int
+  brand   Brand @relation(fields: [brandId], references: [id])
+
+  initialPrice Float
+  salePrice    Float
+  quantity     Int
+  description  String?
+  barcode      String?
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  productAttributes ProductAttribute[]
+  receivedProducts  ReceivedProduct[]
+  billProducts      BillProduct[]
+}
+
+model ProductAttribute {
+  productId   Int
+  attributeId Int
+  content     String
+
+  product   Product   @relation(fields: [productId], references: [id])
+  attribute Attribute @relation(fields: [attributeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([productId, attributeId])
+}
+
+model Provider {
+  id          Int      @id @default(autoincrement())
+  name        String
+  phoneNumber String?
+  email       String?
+  debtTotal   Float    @default(0)
+  total       Float    @default(0)
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  histories     HistoryProvider[]
+  receivedNotes ReceivedNote[]
+}
+
+model HistoryProvider {
+  id         Int      @id @default(autoincrement())
+  providerId Int
+  provider   Provider @relation(fields: [providerId], references: [id])
+
+  paidAmount  Float
+  description String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ReceivedNote {
+  id         Int      @id @default(autoincrement())
+  providerId Int
+  provider   Provider @relation(fields: [providerId], references: [id])
+
+  phoneNumber String?
+  discount    Float    @default(0)
+  payedMoney  Float    @default(0)
+  debtMoney   Float    @default(0)
+  total       Float    @default(0)
+  description String?
+  status      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  receivedProducts ReceivedProduct[]
+}
+
+model ReceivedProduct {
+  id             Int          @id @default(autoincrement())
+  receivedNoteId Int
+  receivedNote   ReceivedNote @relation(fields: [receivedNoteId], references: [id])
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  addQuantity Int
+  discount    Float    @default(0)
+  description String?
+  total       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Bill {
+  id          Int    @id @default(autoincrement())
+  exchangeId  Int?
+  exchange    Bill?  @relation("BillExchange", fields: [exchangeId], references: [id])
+  exchangedBy Bill[] @relation("BillExchange")
+
+  name         String?
+  customerName String?
+  phoneNumber  String?
+  discount     Float    @default(0)
+  total        Float
+  status       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  billProducts BillProduct[]
+}
+
+model BillProduct {
+  id     Int  @id @default(autoincrement())
+  billId Int
+  bill   Bill @relation(fields: [billId], references: [id])
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity  Int
+  salePrice Float
+  total     Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
