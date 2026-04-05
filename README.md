@@ -3,7 +3,7 @@
 ## 🛠 Tech Stack
 
 - **Runtime:** Node.js
-- **Framework:** Express.js (v5.x)
+- **Framework:** Express.js
 - **ORM:** Prisma ORM
 - **Database:** SQLite
 
