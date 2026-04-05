@@ -10,10 +10,13 @@ class ProductService {
 
     if (search) {
       where.OR = [
-        { id: { contains: search } },
         { description: { contains: search } },
         { barcode: { contains: search } },
       ];
+      const searchAsInt = parseInt(search, 10);
+      if (!isNaN(searchAsInt)) {
+        where.OR.push({ id: searchAsInt });
+      }
     }
     if (brandId) where.brandId = parseInt(brandId, 10);
     if (typeId) where.productTypeId = parseInt(typeId, 10);

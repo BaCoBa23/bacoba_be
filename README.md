@@ -7,7 +7,7 @@
 - **Runtime:** Node.js
 - **Framework:** Express.js (v5.x)
 - **ORM:** Prisma ORM
-- **Database:** SQLite (Dễ dàng migrate sang MySQL/PostgreSQL nếu cần)
+- **Database:** SQLite
 
 ---
 
