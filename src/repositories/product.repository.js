@@ -18,6 +18,53 @@ class ProductRepository {
 
     return { data, totalItems };
   }
+
+  async findById(id) {
+    return await prisma.product.findUnique({
+      where: { id },
+      include: {
+        brand: true,
+        type: true,
+        variants: true,
+        productAttributes: {
+          include: {
+            attribute: true,
+          },
+        },
+      },
+    });
+  }
+
+  async create(data) {
+    return await prisma.product.create({
+      data,
+      include: {
+        brand: true,
+        type: true,
+      },
+    });
+  }
+
+  async update(id, data) {
+    return await prisma.product.update({
+      where: { id },
+      data,
+      include: {
+        brand: true,
+        type: true,
+      },
+    });
+  }
+
+  async delete(id) {
+    return await prisma.product.delete({
+      where: { id },
+      include: {
+        brand: true,
+        type: true,
+      },
+    });
+  }
 }
 
 module.exports = new ProductRepository();
