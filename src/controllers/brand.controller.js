@@ -1,6 +1,6 @@
 const brandService = require("../services/brand.service");
 const { validateCreateBrand, validateUpdateBrand } = require("../validations/brand.validation");
-const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class BrandController {
   getList = async (req, res) => {
@@ -46,7 +46,7 @@ class BrandController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });
@@ -72,7 +72,7 @@ class BrandController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });

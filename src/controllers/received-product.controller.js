@@ -1,6 +1,6 @@
 const receivedProductService = require("../services/received-product.service");
 const { validateCreateReceivedProduct, validateUpdateReceivedProduct } = require("../validations/received-product.validation");
-const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ReceivedProductController {
   getByReceivedNoteId = async (req, res) => {
@@ -26,7 +26,7 @@ class ReceivedProductController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });
@@ -61,7 +61,7 @@ class ReceivedProductController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });

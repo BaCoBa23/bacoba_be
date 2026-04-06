@@ -1,6 +1,6 @@
 const billProductService = require("../services/bill-product.service");
 const { validateCreateBillProduct, validateUpdateBillProduct } = require("../validations/bill-product.validation");
-const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class BillProductController {
   getByBillId = async (req, res) => {
@@ -26,7 +26,7 @@ class BillProductController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });
@@ -61,7 +61,7 @@ class BillProductController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });

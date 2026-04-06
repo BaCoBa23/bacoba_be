@@ -1,6 +1,6 @@
 const productTypeService = require("../services/product-type.service");
 const { validateCreateProductType, validateUpdateProductType } = require("../validations/product-type.validation");
-const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ProductTypeController {
   getList = async (req, res) => {
@@ -46,7 +46,7 @@ class ProductTypeController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });
@@ -72,7 +72,7 @@ class ProductTypeController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });

@@ -1,6 +1,6 @@
 const receivedNoteService = require("../services/received-note.service");
 const { validateCreateReceivedNote, validateUpdateReceivedNote } = require("../validations/received-note.validation");
-const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ReceivedNoteController {
   getList = async (req, res) => {
@@ -62,7 +62,7 @@ class ReceivedNoteController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });
@@ -94,7 +94,7 @@ class ReceivedNoteController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });

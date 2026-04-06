@@ -1,6 +1,7 @@
 const MESSAGES = {
   SUCCESS: "Thành công",
   ERROR_SERVER: "Đã xảy ra lỗi từ phía máy chủ",
+  VALIDATION_ERROR: "Dữ liệu không hợp lệ",
 };
 
 const SUCCESS_MESSAGES = {
@@ -156,6 +157,72 @@ const ERROR_VALIDATIONS = {
   RECEIVED_NOTE_DEBT_MONEY_MUST_GTE0: "Tiền nợ phải >= 0",
   RECEIVED_NOTE_TOTAL_MUST_GTE0: "Tổng tiền phải >= 0",
   RECEIVED_NOTE_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+
+  // Bill Product (nested items)
+  BILL_PRODUCT_PRODUCT_ID_REQUIRED: "Mã sản phẩm là bắt buộc",
+  BILL_PRODUCT_QUANTITY_MUST_GT0: "Số lượng phải > 0",
+  BILL_PRODUCT_SALE_PRICE_MUST_GTE0: "Giá bán phải >= 0",
+  BILL_PRODUCT_TOTAL_MUST_GTE0: "Tổng tiền phải >= 0",
+
+  // Received Product (nested items)
+  RECEIVED_PRODUCT_PRODUCT_ID_REQUIRED: "Mã sản phẩm là bắt buộc",
+  RECEIVED_PRODUCT_QUANTITY_MUST_GT0: "Số lượng phải > 0",
+  RECEIVED_PRODUCT_TOTAL_MUST_GTE0: "Tổng tiền phải >= 0",
+
+  // Provider
+  PROVIDER_NAME_REQUIRED_STRING: "Tên nhà cung cấp là bắt buộc và phải là chuỗi",
+  PROVIDER_NAME_MUST_STRING: "Tên nhà cung cấp phải là chuỗi",
+  PROVIDER_PHONE_MUST_STRING: "Số điện thoại phải là chuỗi",
+  PROVIDER_EMAIL_MUST_STRING: "Email phải là chuỗi",
+  PROVIDER_DEBT_TOTAL_MUST_GTE0: "Tổng nợ phải >= 0",
+  PROVIDER_TOTAL_MUST_GTE0: "Tổng tiền phải >= 0",
+  PROVIDER_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+
+  // Product Type
+  PRODUCT_TYPE_NAME_REQUIRED_STRING: "Tên loại sản phẩm là bắt buộc và phải là chuỗi",
+  PRODUCT_TYPE_NAME_MUST_STRING: "Tên loại sản phẩm phải là chuỗi",
+  PRODUCT_TYPE_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+
+  // Bill Product
+  BILL_PRODUCT_BILL_ID_REQUIRED: "ID hoá đơn là bắt buộc",
+  BILL_PRODUCT_PRODUCT_ID_REQUIRED_STRING: "ID sản phẩm là bắt buộc và phải là chuỗi",
+  BILL_PRODUCT_QUANTITY_REQUIRED_INT_GT0: "Số lượng là bắt buộc, phải là số nguyên và > 0",
+  BILL_PRODUCT_SALE_PRICE_REQUIRED_GTE0: "Giá bán là bắt buộc và phải >= 0",
+  BILL_PRODUCT_TOTAL_REQUIRED_GTE0: "Tổng tiền là bắt buộc và phải >= 0",
+  BILL_PRODUCT_QUANTITY_MUST_INT_GT0: "Số lượng phải là số nguyên và > 0",
+  BILL_PRODUCT_SALE_PRICE_MUST_GTE0_UPDATE: "Giá bán phải >= 0",
+  BILL_PRODUCT_TOTAL_MUST_GTE0_UPDATE: "Tổng tiền phải >= 0",
+
+  // Product
+  PRODUCT_ID_REQUIRED_STRING: "ID sản phẩm là bắt buộc và phải là chuỗi",
+  PRODUCT_TYPE_ID_REQUIRED: "Loại sản phẩm là bắt buộc",
+  PRODUCT_BRAND_ID_REQUIRED: "Thương hiệu là bắt buộc",
+  PRODUCT_INITIAL_PRICE_REQUIRED_GTE0: "Giá gốc là bắt buộc và phải >= 0",
+  PRODUCT_SALE_PRICE_REQUIRED_GTE0: "Giá bán là bắt buộc và phải >= 0",
+  PRODUCT_QUANTITY_REQUIRED_INT_GTE0: "Số lượng là bắt buộc, phải là số nguyên và >= 0",
+  PRODUCT_TYPE_ID_INVALID: "Loại sản phẩm không hợp lệ",
+  PRODUCT_BRAND_ID_INVALID: "Thương hiệu không hợp lệ",
+  PRODUCT_INITIAL_PRICE_MUST_GTE0: "Giá gốc phải >= 0",
+  PRODUCT_SALE_PRICE_MUST_GTE0: "Giá bán phải >= 0",
+  PRODUCT_QUANTITY_MUST_INT_GTE0: "Số lượng phải là số nguyên và >= 0",
+
+  // History Provider
+  HISTORY_PROVIDER_PROVIDER_ID_REQUIRED: "ID nhà cung cấp là bắt buộc",
+  HISTORY_PROVIDER_PAID_AMOUNT_REQUIRED_GTE0: "Số tiền thanh toán là bắt buộc và phải >= 0",
+  HISTORY_PROVIDER_PAID_AMOUNT_MUST_GTE0: "Số tiền thanh toán phải >= 0",
+  HISTORY_PROVIDER_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+
+  // Product Attribute
+  PRODUCT_ATTRIBUTE_PRODUCT_ID_REQUIRED_STRING: "ID sản phẩm là bắt buộc và phải là chuỗi",
+
+  // Received Product
+  RECEIVED_PRODUCT_RECEIVED_NOTE_ID_REQUIRED: "ID phiếu nhập kho là bắt buộc",
+  RECEIVED_PRODUCT_PRODUCT_ID_REQUIRED_STRING: "ID sản phẩm là bắt buộc và phải là chuỗi",
+  RECEIVED_PRODUCT_QUANTITY_REQUIRED_INT_GT0: "Số lượng thêm là bắt buộc, phải là số nguyên và > 0",
+  RECEIVED_PRODUCT_TOTAL_REQUIRED_GTE0: "Tổng tiền là bắt buộc và phải >= 0",
+  RECEIVED_PRODUCT_QUANTITY_MUST_INT_GT0: "Số lượng thêm phải là số nguyên và > 0",
+  RECEIVED_PRODUCT_DISCOUNT_MUST_GTE0: "Giảm giá phải >= 0",
+  RECEIVED_PRODUCT_TOTAL_MUST_GTE0: "Tổng tiền phải >= 0",
 };
 
 module.exports = {

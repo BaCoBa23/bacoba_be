@@ -1,6 +1,6 @@
 const userService = require("../services/user.service");
 const { validateCreateUser, validateUpdateUser } = require("../validations/user.validation");
-const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class UserController {
   getList = async (req, res) => {
@@ -46,7 +46,7 @@ class UserController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });

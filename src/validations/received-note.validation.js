@@ -18,13 +18,13 @@ const validateCreateReceivedNote = (data) => {
     } else {
       data.receivedProducts.forEach((rp, index) => {
         if (!rp.productId) {
-          errors[`receivedProducts[${index}].productId`] = "Mã sản phẩm là bắt buộc";
+          errors[`receivedProducts[${index}].productId`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_PRODUCT_ID_REQUIRED;
         }
         if (rp.addQuantity === undefined || Number(rp.addQuantity) <= 0) {
-          errors[`receivedProducts[${index}].addQuantity`] = "Số lượng phải > 0";
+          errors[`receivedProducts[${index}].addQuantity`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_QUANTITY_MUST_GT0;
         }
         if (rp.total === undefined || Number(rp.total) < 0) {
-          errors[`receivedProducts[${index}].total`] = "Tổng tiền phải >= 0";
+          errors[`receivedProducts[${index}].total`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_TOTAL_MUST_GTE0;
         }
       });
     }
@@ -63,13 +63,13 @@ const validateUpdateReceivedNote = (data) => {
     } else {
       data.receivedProducts.forEach((rp, index) => {
         if (!rp.productId) {
-          errors[`receivedProducts[${index}].productId`] = "Mã sản phẩm là bắt buộc";
+          errors[`receivedProducts[${index}].productId`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_PRODUCT_ID_REQUIRED;
         }
         if (rp.addQuantity === undefined || Number(rp.addQuantity) <= 0) {
-          errors[`receivedProducts[${index}].addQuantity`] = "Số lượng phải > 0";
+          errors[`receivedProducts[${index}].addQuantity`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_QUANTITY_MUST_GT0;
         }
         if (rp.total === undefined || Number(rp.total) < 0) {
-          errors[`receivedProducts[${index}].total`] = "Tổng tiền phải >= 0";
+          errors[`receivedProducts[${index}].total`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_TOTAL_MUST_GTE0;
         }
       });
     }

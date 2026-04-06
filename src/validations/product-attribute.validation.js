@@ -1,8 +1,10 @@
+const { ERROR_VALIDATIONS } = require("../constants");
+
 const validateCreateProductAttribute = (data) => {
   const errors = {};
 
   if (!data.productId || typeof data.productId !== "string") {
-    errors.productId = "ID sản phẩm là bắt buộc và phải là chuỗi";
+    errors.productId = ERROR_VALIDATIONS.PRODUCT_ATTRIBUTE_PRODUCT_ID_REQUIRED_STRING;
   }
 
   if (!data.attributeId || !Number.isInteger(Number(data.attributeId))) {

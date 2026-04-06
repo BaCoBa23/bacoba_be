@@ -1,6 +1,6 @@
 const historyProviderService = require("../services/history-provider.service");
 const { validateCreateHistoryProvider, validateUpdateHistoryProvider } = require("../validations/history-provider.validation");
-const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class HistoryProviderController {
   getList = async (req, res) => {
@@ -62,7 +62,7 @@ class HistoryProviderController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });
@@ -94,7 +94,7 @@ class HistoryProviderController {
 
       if (Object.keys(errors).length > 0) {
         return res.error({
-          message: "Dữ liệu không hợp lệ",
+          message: MESSAGES.VALIDATION_ERROR,
           status: 400,
           errors,
         });
