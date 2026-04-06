@@ -115,8 +115,52 @@ const ERROR_MESSAGES = {
   SERVER_ERROR: "Đã xảy ra lỗi từ phía máy chủ",
 };
 
+const ERROR_VALIDATIONS = {
+  // Attribute Type
+  ATTRIBUTE_TYPE_NAME_REQUIRED_STRING: "Tên loại thuộc tính là bắt buộc và phải là chuỗi",
+  ATTRIBUTE_TYPE_NAME_MUST_STRING: "Tên loại thuộc tính phải là chuỗi",
+  ATTRIBUTE_TYPE_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+
+  // Brand
+  BRAND_NAME_REQUIRED_STRING: "Tên thương hiệu là bắt buộc và phải là chuỗi",
+  BRAND_NAME_MUST_STRING: "Tên thương hiệu phải là chuỗi",
+  BRAND_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+
+  // User
+  USER_USERNAME_REQUIRED_STRING: "Tên đăng nhập là bắt buộc và phải là chuỗi",
+  USER_PASSWORD_REQUIRED_MIN: "Mật khẩu là bắt buộc và phải có ít nhất 6 ký tự",
+  USER_PASSWORD_MUST_MIN: "Mật khẩu phải là chuỗi và có ít nhất 6 ký tự",
+  USER_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+
+  // Attribute
+  ATTRIBUTE_TYPE_ID_REQUIRED: "Loại thuộc tính là bắt buộc",
+  ATTRIBUTE_VALUE_REQUIRED_STRING: "Giá trị thuộc tính là bắt buộc và phải là chuỗi",
+  ATTRIBUTE_TYPE_ID_INVALID: "Loại thuộc tính không hợp lệ",
+  ATTRIBUTE_VALUE_MUST_STRING: "Giá trị thuộc tính phải là chuỗi",
+  ATTRIBUTE_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+
+  // Bill
+  BILL_TOTAL_REQUIRED_GTE0: "Tổng tiền là bắt buộc và phải >= 0",
+  BILL_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+  BILL_PRODUCTS_MUST_ARRAY: "Danh sách sản phẩm phải là array",
+  BILL_TOTAL_MUST_GTE0: "Tổng tiền phải >= 0",
+  BILL_DISCOUNT_MUST_GTE0: "Giảm giá phải >= 0",
+  BILL_PHONE_MUST_STRING: "Số điện thoại phải là chuỗi",
+
+  // Received Note
+  RECEIVED_NOTE_PROVIDER_ID_REQUIRED: "ID nhà cung cấp là bắt buộc",
+  RECEIVED_NOTE_TOTAL_REQUIRED_GTE0: "Tổng tiền là bắt buộc và phải >= 0",
+  RECEIVED_NOTE_PRODUCTS_MUST_ARRAY: "Danh sách sản phẩm phải là array",
+  RECEIVED_NOTE_DISCOUNT_MUST_GTE0: "Giảm giá phải >= 0",
+  RECEIVED_NOTE_PAYED_MONEY_MUST_GTE0: "Tiền đã trả phải >= 0",
+  RECEIVED_NOTE_DEBT_MONEY_MUST_GTE0: "Tiền nợ phải >= 0",
+  RECEIVED_NOTE_TOTAL_MUST_GTE0: "Tổng tiền phải >= 0",
+  RECEIVED_NOTE_STATUS_MUST_STRING: "Trạng thái phải là chuỗi",
+};
+
 module.exports = {
   MESSAGES,
   SUCCESS_MESSAGES,
   ERROR_MESSAGES,
+  ERROR_VALIDATIONS,
 };

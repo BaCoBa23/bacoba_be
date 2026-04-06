@@ -1,18 +1,20 @@
+const { ERROR_VALIDATIONS } = require("../constants");
+
 const validateCreateBill = (data) => {
   const errors = {};
 
   if (data.total === undefined || data.total === null || Number(data.total) < 0) {
-    errors.total = "Tổng tiền là bắt buộc và phải >= 0";
+    errors.total = ERROR_VALIDATIONS.BILL_TOTAL_REQUIRED_GTE0;
   }
 
   if (data.status !== undefined && typeof data.status !== "string") {
-    errors.status = "Trạng thái phải là chuỗi";
+    errors.status = ERROR_VALIDATIONS.BILL_STATUS_MUST_STRING;
   }
 
   // Validate billProducts nếu có
   if (data.billProducts !== undefined && data.billProducts !== null) {
     if (!Array.isArray(data.billProducts)) {
-      errors.billProducts = "Danh sách sản phẩm phải là array";
+      errors.billProducts = ERROR_VALIDATIONS.BILL_PRODUCTS_MUST_ARRAY;
     } else {
       data.billProducts.forEach((bp, index) => {
         if (!bp.productId) {
@@ -38,25 +40,25 @@ const validateUpdateBill = (data) => {
   const errors = {};
 
   if (data.total !== undefined && (Number(data.total) < 0 || isNaN(Number(data.total)))) {
-    errors.total = "Tổng tiền phải >= 0";
+    errors.total = ERROR_VALIDATIONS.BILL_TOTAL_MUST_GTE0;
   }
 
   if (data.discount !== undefined && (Number(data.discount) < 0 || isNaN(Number(data.discount)))) {
-    errors.discount = "Giảm giá phải >= 0";
+    errors.discount = ERROR_VALIDATIONS.BILL_DISCOUNT_MUST_GTE0;
   }
 
   if (data.status !== undefined && typeof data.status !== "string") {
-    errors.status = "Trạng thái phải là chuỗi";
+    errors.status = ERROR_VALIDATIONS.BILL_STATUS_MUST_STRING;
   }
 
   if (data.phoneNumber !== undefined && data.phoneNumber !== null && typeof data.phoneNumber !== "string") {
-    errors.phoneNumber = "Số điện thoại phải là chuỗi";
+    errors.phoneNumber = ERROR_VALIDATIONS.BILL_PHONE_MUST_STRING;
   }
 
   // Validate billProducts nếu có
   if (data.billProducts !== undefined && data.billProducts !== null) {
     if (!Array.isArray(data.billProducts)) {
-      errors.billProducts = "Danh sách sản phẩm phải là array";
+      errors.billProducts = ERROR_VALIDATIONS.BILL_PRODUCTS_MUST_ARRAY;
     } else {
       data.billProducts.forEach((bp, index) => {
         if (!bp.productId) {

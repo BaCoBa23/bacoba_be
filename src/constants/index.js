@@ -1,7 +1,8 @@
-const { ERROR_MESSAGES, MESSAGES, SUCCESS_MESSAGES } = require("./message.constant");
+const { ERROR_MESSAGES, MESSAGES, SUCCESS_MESSAGES, ERROR_VALIDATIONS } = require("./message.constant");
 
 module.exports = {
   MESSAGES,
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
+  ERROR_VALIDATIONS,
 };

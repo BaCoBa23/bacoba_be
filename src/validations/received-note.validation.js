@@ -1,18 +1,20 @@
+const { ERROR_VALIDATIONS } = require("../constants");
+
 const validateCreateReceivedNote = (data) => {
   const errors = {};
 
   if (!data.providerId || !Number.isInteger(Number(data.providerId))) {
-    errors.providerId = "ID nhà cung cấp là bắt buộc";
+    errors.providerId = ERROR_VALIDATIONS.RECEIVED_NOTE_PROVIDER_ID_REQUIRED;
   }
 
   if (data.total === undefined || data.total === null || Number(data.total) < 0) {
-    errors.total = "Tổng tiền là bắt buộc và phải >= 0";
+    errors.total = ERROR_VALIDATIONS.RECEIVED_NOTE_TOTAL_REQUIRED_GTE0;
   }
 
   // Validate receivedProducts nếu có
   if (data.receivedProducts !== undefined && data.receivedProducts !== null) {
     if (!Array.isArray(data.receivedProducts)) {
-      errors.receivedProducts = "Danh sách sản phẩm phải là array";
+      errors.receivedProducts = ERROR_VALIDATIONS.RECEIVED_NOTE_PRODUCTS_MUST_ARRAY;
     } else {
       data.receivedProducts.forEach((rp, index) => {
         if (!rp.productId) {
@@ -35,29 +37,29 @@ const validateUpdateReceivedNote = (data) => {
   const errors = {};
 
   if (data.discount !== undefined && (Number(data.discount) < 0 || isNaN(Number(data.discount)))) {
-    errors.discount = "Giảm giá phải >= 0";
+    errors.discount = ERROR_VALIDATIONS.RECEIVED_NOTE_DISCOUNT_MUST_GTE0;
   }
 
   if (data.payedMoney !== undefined && (Number(data.payedMoney) < 0 || isNaN(Number(data.payedMoney)))) {
-    errors.payedMoney = "Tiền đã trả phải >= 0";
+    errors.payedMoney = ERROR_VALIDATIONS.RECEIVED_NOTE_PAYED_MONEY_MUST_GTE0;
   }
 
   if (data.debtMoney !== undefined && (Number(data.debtMoney) < 0 || isNaN(Number(data.debtMoney)))) {
-    errors.debtMoney = "Tiền nợ phải >= 0";
+    errors.debtMoney = ERROR_VALIDATIONS.RECEIVED_NOTE_DEBT_MONEY_MUST_GTE0;
   }
 
   if (data.total !== undefined && (Number(data.total) < 0 || isNaN(Number(data.total)))) {
-    errors.total = "Tổng tiền phải >= 0";
+    errors.total = ERROR_VALIDATIONS.RECEIVED_NOTE_TOTAL_MUST_GTE0;
   }
 
   if (data.status !== undefined && typeof data.status !== "string") {
-    errors.status = "Trạng thái phải là chuỗi";
+    errors.status = ERROR_VALIDATIONS.RECEIVED_NOTE_STATUS_MUST_STRING;
   }
 
   // Validate receivedProducts nếu có
   if (data.receivedProducts !== undefined && data.receivedProducts !== null) {
     if (!Array.isArray(data.receivedProducts)) {
-      errors.receivedProducts = "Danh sách sản phẩm phải là array";
+      errors.receivedProducts = ERROR_VALIDATIONS.RECEIVED_NOTE_PRODUCTS_MUST_ARRAY;
     } else {
       data.receivedProducts.forEach((rp, index) => {
         if (!rp.productId) {
