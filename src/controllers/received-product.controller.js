@@ -3,47 +3,10 @@ const { validateCreateReceivedProduct, validateUpdateReceivedProduct } = require
 const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ReceivedProductController {
-  getList = async (req, res) => {
-    try {
-      const result = await receivedProductService.getReceivedProducts(req.query);
-
-      return res.success({
-        message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_LIST_SUCCESSFUL,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
-    }
-  };
-
-  getById = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const receivedProduct = await receivedProductService.getReceivedProductById(parseInt(id, 10));
-
-      if (!receivedProduct) {
-        return res.error({
-          message: ERROR_MESSAGES.RECEIVED_PRODUCT_NOT_FOUND,
-          status: 404,
-        });
-      }
-
-      return res.success({
-        message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_DETAIL_SUCCESSFUL,
-        data: receivedProduct,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
-    }
-  };
-
   getByReceivedNoteId = async (req, res) => {
     try {
-      const { receivedNoteId } = req.params;
-      const result = await receivedProductService.getProductsByReceivedNoteId(receivedNoteId, req.query);
+      const { id } = req.params;
+      const result = await receivedProductService.getProductsByReceivedNoteId(id, req.query);
 
       return res.success({
         message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_BY_NOTE_LIST_SUCCESSFUL,
@@ -58,6 +21,7 @@ class ReceivedProductController {
 
   create = async (req, res) => {
     try {
+      const { id } = req.params;
       const errors = validateCreateReceivedProduct(req.body);
 
       if (Object.keys(errors).length > 0) {
@@ -68,7 +32,10 @@ class ReceivedProductController {
         });
       }
 
-      const receivedProduct = await receivedProductService.createReceivedProduct(req.body);
+      const receivedProduct = await receivedProductService.createReceivedProduct({
+        ...req.body,
+        receivedNoteId: id,
+      });
 
       return res.success({
         message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_CREATE_SUCCESSFUL,
@@ -89,7 +56,7 @@ class ReceivedProductController {
 
   update = async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id, productId } = req.params;
       const errors = validateUpdateReceivedProduct(req.body);
 
       if (Object.keys(errors).length > 0) {
@@ -100,7 +67,7 @@ class ReceivedProductController {
         });
       }
 
-      const receivedProduct = await receivedProductService.updateReceivedProduct(parseInt(id, 10), req.body);
+      const receivedProduct = await receivedProductService.updateReceivedProduct(id, productId, req.body);
 
       if (!receivedProduct) {
         return res.error({
@@ -121,8 +88,8 @@ class ReceivedProductController {
 
   delete = async (req, res) => {
     try {
-      const { id } = req.params;
-      await receivedProductService.deleteReceivedProduct(parseInt(id, 10));
+      const { id, productId } = req.params;
+      await receivedProductService.deleteReceivedProduct(id, productId);
 
       return res.success({
         message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_DELETE_SUCCESSFUL,

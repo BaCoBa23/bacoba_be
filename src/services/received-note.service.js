@@ -1,5 +1,6 @@
 const receivedNoteRepo = require("../repositories/received-note.repository");
 const { buildPagination, buildMeta } = require("../utils");
+const prisma = require("../config/prisma.config");
 
 class ReceivedNoteService {
   async getReceivedNotes(query) {
@@ -50,6 +51,34 @@ class ReceivedNoteService {
       status: data.status || "pending",
     };
 
+    // Nếu có receivedProducts, tạo receivedNote với nested create
+    if (data.receivedProducts && Array.isArray(data.receivedProducts) && data.receivedProducts.length > 0) {
+      const receivedProductsData = data.receivedProducts.map((rp) => ({
+        productId: rp.productId,
+        addQuantity: parseInt(rp.addQuantity, 10),
+        discount: parseFloat(rp.discount) || 0,
+        description: rp.description || null,
+        total: parseFloat(rp.total),
+      }));
+
+      return await prisma.receivedNote.create({
+        data: {
+          ...receivedNoteData,
+          receivedProducts: {
+            create: receivedProductsData,
+          },
+        },
+        include: {
+          receivedProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+    }
+
+    // Nếu không có receivedProducts, tạo receivedNote bình thường
     return await receivedNoteRepo.create(receivedNoteData);
   }
 
@@ -64,6 +93,36 @@ class ReceivedNoteService {
     if (data.description !== undefined) updateData.description = data.description;
     if (data.status !== undefined) updateData.status = data.status;
 
+    // Nếu có receivedProducts, delete old ones và create new ones
+    if (data.receivedProducts && Array.isArray(data.receivedProducts)) {
+      const receivedProductsData = data.receivedProducts.map((rp) => ({
+        productId: rp.productId,
+        addQuantity: parseInt(rp.addQuantity, 10),
+        discount: parseFloat(rp.discount) || 0,
+        description: rp.description || null,
+        total: parseFloat(rp.total),
+      }));
+
+      return await prisma.receivedNote.update({
+        where: { id },
+        data: {
+          ...updateData,
+          receivedProducts: {
+            deleteMany: {}, // Delete tất cả receivedProducts cũ
+            create: receivedProductsData, // Tạo receivedProducts mới
+          },
+        },
+        include: {
+          receivedProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+    }
+
+    // Nếu không có receivedProducts, chỉ update receivedNote
     return await receivedNoteRepo.update(id, updateData);
   }
 

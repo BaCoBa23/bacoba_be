@@ -1,23 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const receivedNoteController = require("../controllers/received-note.controller");
+const receivedProductController = require("../controllers/received-product.controller");
 
-// Danh sách tất cả phiếu nhập
+// Received Note routes
 router.get("/", receivedNoteController.getList);
-
-// Danh sách phiếu nhập của một nhà cung cấp
-router.get("/provider/:providerId", receivedNoteController.getByProviderId);
-
-// Chi tiết một phiếu nhập
-router.get("/:id", receivedNoteController.getById);
-
-// Tạo phiếu nhập
 router.post("/", receivedNoteController.create);
-
-// Cập nhật phiếu nhập
+router.get("/provider/:providerId", receivedNoteController.getByProviderId);
+router.get("/:id", receivedNoteController.getById);
 router.put("/:id", receivedNoteController.update);
-
-// Xóa phiếu nhập
 router.delete("/:id", receivedNoteController.delete);
+
+// Received Products - Nested routes
+router.get("/:id/products", receivedProductController.getByReceivedNoteId);
+router.post("/:id/products", receivedProductController.create);
+router.put("/:id/products/:productId", receivedProductController.update);
+router.delete("/:id/products/:productId", receivedProductController.delete);
 
 module.exports = router;
