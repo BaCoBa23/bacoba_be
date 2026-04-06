@@ -9,6 +9,28 @@ const validateCreateBill = (data) => {
     errors.status = "Trạng thái phải là chuỗi";
   }
 
+  // Validate billProducts nếu có
+  if (data.billProducts !== undefined && data.billProducts !== null) {
+    if (!Array.isArray(data.billProducts)) {
+      errors.billProducts = "Danh sách sản phẩm phải là array";
+    } else {
+      data.billProducts.forEach((bp, index) => {
+        if (!bp.productId) {
+          errors[`billProducts[${index}].productId`] = "Mã sản phẩm là bắt buộc";
+        }
+        if (bp.quantity === undefined || Number(bp.quantity) <= 0) {
+          errors[`billProducts[${index}].quantity`] = "Số lượng phải > 0";
+        }
+        if (bp.salePrice === undefined || Number(bp.salePrice) < 0) {
+          errors[`billProducts[${index}].salePrice`] = "Giá bán phải >= 0";
+        }
+        if (bp.total === undefined || Number(bp.total) < 0) {
+          errors[`billProducts[${index}].total`] = "Tổng tiền phải >= 0";
+        }
+      });
+    }
+  }
+
   return errors;
 };
 
@@ -29,6 +51,28 @@ const validateUpdateBill = (data) => {
 
   if (data.phoneNumber !== undefined && data.phoneNumber !== null && typeof data.phoneNumber !== "string") {
     errors.phoneNumber = "Số điện thoại phải là chuỗi";
+  }
+
+  // Validate billProducts nếu có
+  if (data.billProducts !== undefined && data.billProducts !== null) {
+    if (!Array.isArray(data.billProducts)) {
+      errors.billProducts = "Danh sách sản phẩm phải là array";
+    } else {
+      data.billProducts.forEach((bp, index) => {
+        if (!bp.productId) {
+          errors[`billProducts[${index}].productId`] = "Mã sản phẩm là bắt buộc";
+        }
+        if (bp.quantity === undefined || Number(bp.quantity) <= 0) {
+          errors[`billProducts[${index}].quantity`] = "Số lượng phải > 0";
+        }
+        if (bp.salePrice === undefined || Number(bp.salePrice) < 0) {
+          errors[`billProducts[${index}].salePrice`] = "Giá bán phải >= 0";
+        }
+        if (bp.total === undefined || Number(bp.total) < 0) {
+          errors[`billProducts[${index}].total`] = "Tổng tiền phải >= 0";
+        }
+      });
+    }
   }
 
   return errors;
