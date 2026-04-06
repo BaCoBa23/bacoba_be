@@ -1,6 +1,6 @@
 const historyProviderService = require("../services/history-provider.service");
 const { validateCreateHistoryProvider, validateUpdateHistoryProvider } = require("../validations/history-provider.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class HistoryProviderController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class HistoryProviderController {
       const result = await historyProviderService.getHistories(req.query);
 
       return res.success({
-        message: "Lấy danh sách lịch sử thanh toán thành công",
+        message: SUCCESS_MESSAGES.HISTORY_PROVIDER_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class HistoryProviderController {
       }
 
       return res.success({
-        message: "Lấy chi tiết lịch sử thanh toán thành công",
+        message: SUCCESS_MESSAGES.HISTORY_PROVIDER_DETAIL_SUCCESSFUL,
         data: history,
       });
     } catch (error) {
@@ -46,7 +46,7 @@ class HistoryProviderController {
       const result = await historyProviderService.getHistoriesByProviderId(providerId, req.query);
 
       return res.success({
-        message: "Lấy danh sách lịch sử thanh toán của nhà cung cấp thành công",
+        message: SUCCESS_MESSAGES.HISTORY_PROVIDER_BY_PROVIDER_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -71,7 +71,7 @@ class HistoryProviderController {
       const history = await historyProviderService.createHistory(req.body);
 
       return res.success({
-        message: "Tạo lịch sử thanh toán thành công",
+        message: SUCCESS_MESSAGES.HISTORY_PROVIDER_CREATE_SUCCESSFUL,
         data: history,
         status: 201,
       });
@@ -110,7 +110,7 @@ class HistoryProviderController {
       }
 
       return res.success({
-        message: "Cập nhật lịch sử thanh toán thành công",
+        message: SUCCESS_MESSAGES.HISTORY_PROVIDER_UPDATE_SUCCESSFUL,
         data: history,
       });
     } catch (error) {
@@ -125,7 +125,7 @@ class HistoryProviderController {
       await historyProviderService.deleteHistory(parseInt(id, 10));
 
       return res.success({
-        message: "Xóa lịch sử thanh toán thành công",
+        message: SUCCESS_MESSAGES.HISTORY_PROVIDER_DELETE_SUCCESSFUL,
       });
     } catch (error) {
       console.error(error);

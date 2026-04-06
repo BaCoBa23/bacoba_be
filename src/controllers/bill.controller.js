@@ -1,6 +1,6 @@
 const billService = require("../services/bill.service");
 const { validateCreateBill, validateUpdateBill } = require("../validations/bill.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class BillController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class BillController {
       const result = await billService.getBills(req.query);
 
       return res.success({
-        message: "Lấy danh sách hoá đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class BillController {
       }
 
       return res.success({
-        message: "Lấy chi tiết hoá đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_DETAIL_SUCCESSFUL,
         data: bill,
       });
     } catch (error) {
@@ -55,7 +55,7 @@ class BillController {
       const bill = await billService.createBill(req.body);
 
       return res.success({
-        message: "Tạo hoá đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_CREATE_SUCCESSFUL,
         data: bill,
         status: 201,
       });
@@ -88,7 +88,7 @@ class BillController {
       }
 
       return res.success({
-        message: "Cập nhật hoá đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_UPDATE_SUCCESSFUL,
         data: bill,
       });
     } catch (error) {
@@ -103,7 +103,7 @@ class BillController {
       await billService.deleteBill(parseInt(id, 10));
 
       return res.success({
-        message: "Xóa hoá đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_DELETE_SUCCESSFUL,
       });
     } catch (error) {
       console.error(error);

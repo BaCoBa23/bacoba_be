@@ -1,6 +1,6 @@
 const productAttributeService = require("../services/product-attribute.service");
 const { validateCreateProductAttribute, validateUpdateProductAttribute } = require("../validations/product-attribute.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ProductAttributeController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class ProductAttributeController {
       const result = await productAttributeService.getProductAttributes(req.query);
 
       return res.success({
-        message: "Lấy danh sách thuộc tính sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_ATTRIBUTE_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -24,7 +24,7 @@ class ProductAttributeController {
       const result = await productAttributeService.getAttributesByProductId(productId, req.query);
 
       return res.success({
-        message: "Lấy danh sách thuộc tính của sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_ATTRIBUTE_BY_PRODUCT_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -47,7 +47,7 @@ class ProductAttributeController {
       }
 
       return res.success({
-        message: "Lấy chi tiết thuộc tính sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_ATTRIBUTE_DETAIL_SUCCESSFUL,
         data: productAttribute,
       });
     } catch (error) {
@@ -71,7 +71,7 @@ class ProductAttributeController {
       const productAttribute = await productAttributeService.createProductAttribute(req.body);
 
       return res.success({
-        message: "Thêm thuộc tính cho sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_ATTRIBUTE_CREATE_SUCCESSFUL,
         data: productAttribute,
         status: 201,
       });
@@ -110,7 +110,7 @@ class ProductAttributeController {
       }
 
       return res.success({
-        message: "Cập nhật thuộc tính sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_ATTRIBUTE_UPDATE_SUCCESSFUL,
         data: productAttribute,
       });
     } catch (error) {
@@ -125,7 +125,7 @@ class ProductAttributeController {
       await productAttributeService.deleteProductAttribute(productId, attributeId);
 
       return res.success({
-        message: "Xóa thuộc tính sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_ATTRIBUTE_DELETE_SUCCESSFUL,
       });
     } catch (error) {
       console.error(error);

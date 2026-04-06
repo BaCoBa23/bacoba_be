@@ -1,6 +1,6 @@
 const receivedProductService = require("../services/received-product.service");
 const { validateCreateReceivedProduct, validateUpdateReceivedProduct } = require("../validations/received-product.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ReceivedProductController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class ReceivedProductController {
       const result = await receivedProductService.getReceivedProducts(req.query);
 
       return res.success({
-        message: "Lấy danh sách sản phẩm nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class ReceivedProductController {
       }
 
       return res.success({
-        message: "Lấy chi tiết sản phẩm nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_DETAIL_SUCCESSFUL,
         data: receivedProduct,
       });
     } catch (error) {
@@ -46,7 +46,7 @@ class ReceivedProductController {
       const result = await receivedProductService.getProductsByReceivedNoteId(receivedNoteId, req.query);
 
       return res.success({
-        message: "Lấy danh sách sản phẩm của phiếu nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_BY_NOTE_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -71,7 +71,7 @@ class ReceivedProductController {
       const receivedProduct = await receivedProductService.createReceivedProduct(req.body);
 
       return res.success({
-        message: "Thêm sản phẩm vào phiếu nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_CREATE_SUCCESSFUL,
         data: receivedProduct,
         status: 201,
       });
@@ -110,7 +110,7 @@ class ReceivedProductController {
       }
 
       return res.success({
-        message: "Cập nhật sản phẩm nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_UPDATE_SUCCESSFUL,
         data: receivedProduct,
       });
     } catch (error) {
@@ -125,7 +125,7 @@ class ReceivedProductController {
       await receivedProductService.deleteReceivedProduct(parseInt(id, 10));
 
       return res.success({
-        message: "Xóa sản phẩm khỏi phiếu nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_PRODUCT_DELETE_SUCCESSFUL,
       });
     } catch (error) {
       console.error(error);

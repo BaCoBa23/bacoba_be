@@ -1,6 +1,6 @@
 const productTypeService = require("../services/product-type.service");
 const { validateCreateProductType, validateUpdateProductType } = require("../validations/product-type.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ProductTypeController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class ProductTypeController {
       const result = await productTypeService.getProductTypes(req.query);
 
       return res.success({
-        message: "Lấy danh sách loại sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_TYPE_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class ProductTypeController {
       }
 
       return res.success({
-        message: "Lấy chi tiết loại sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_TYPE_DETAIL_SUCCESSFUL,
         data: productType,
       });
     } catch (error) {
@@ -55,7 +55,7 @@ class ProductTypeController {
       const productType = await productTypeService.createProductType(req.body);
 
       return res.success({
-        message: "Tạo loại sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_TYPE_CREATE_SUCCESSFUL,
         data: productType,
         status: 201,
       });
@@ -88,7 +88,7 @@ class ProductTypeController {
       }
 
       return res.success({
-        message: "Cập nhật loại sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_TYPE_UPDATE_SUCCESSFUL,
         data: productType,
       });
     } catch (error) {
@@ -110,7 +110,7 @@ class ProductTypeController {
       }
 
       return res.success({
-        message: "Xóa loại sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_TYPE_DELETE_SUCCESSFUL,
         data: productType,
       });
     } catch (error) {

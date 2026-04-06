@@ -1,6 +1,6 @@
 const receivedNoteService = require("../services/received-note.service");
 const { validateCreateReceivedNote, validateUpdateReceivedNote } = require("../validations/received-note.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ReceivedNoteController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class ReceivedNoteController {
       const result = await receivedNoteService.getReceivedNotes(req.query);
 
       return res.success({
-        message: "Lấy danh sách phiếu nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_NOTE_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class ReceivedNoteController {
       }
 
       return res.success({
-        message: "Lấy chi tiết phiếu nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_NOTE_DETAIL_SUCCESSFUL,
         data: receivedNote,
       });
     } catch (error) {
@@ -46,7 +46,7 @@ class ReceivedNoteController {
       const result = await receivedNoteService.getReceivedNotesByProviderId(providerId, req.query);
 
       return res.success({
-        message: "Lấy danh sách phiếu nhập kho của nhà cung cấp thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_NOTE_BY_PROVIDER_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -71,7 +71,7 @@ class ReceivedNoteController {
       const receivedNote = await receivedNoteService.createReceivedNote(req.body);
 
       return res.success({
-        message: "Tạo phiếu nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_NOTE_CREATE_SUCCESSFUL,
         data: receivedNote,
         status: 201,
       });
@@ -110,7 +110,7 @@ class ReceivedNoteController {
       }
 
       return res.success({
-        message: "Cập nhật phiếu nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_NOTE_UPDATE_SUCCESSFUL,
         data: receivedNote,
       });
     } catch (error) {
@@ -125,7 +125,7 @@ class ReceivedNoteController {
       await receivedNoteService.deleteReceivedNote(parseInt(id, 10));
 
       return res.success({
-        message: "Xóa phiếu nhập kho thành công",
+        message: SUCCESS_MESSAGES.RECEIVED_NOTE_DELETE_SUCCESSFUL,
       });
     } catch (error) {
       console.error(error);

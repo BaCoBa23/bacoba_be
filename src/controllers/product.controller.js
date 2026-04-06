@@ -1,6 +1,6 @@
 const productService = require("../services/product.service");
 const { validateCreateProduct, validateUpdateProduct } = require("../validations/product.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ProductController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class ProductController {
       const result = await productService.getProducts(req.query);
 
       return res.success({
-        message: "Lấy danh sách sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class ProductController {
       }
 
       return res.success({
-        message: "Lấy chi tiết sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_DETAIL_SUCCESSFUL,
         data: product,
       });
     } catch (error) {
@@ -55,7 +55,7 @@ class ProductController {
       const product = await productService.createProduct(req.body);
 
       return res.success({
-        message: "Tạo sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_CREATE_SUCCESSFUL,
         data: product,
         status: 201,
       });
@@ -94,7 +94,7 @@ class ProductController {
       }
 
       return res.success({
-        message: "Cập nhật sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_UPDATE_SUCCESSFUL,
         data: product,
       });
     } catch (error) {
@@ -116,7 +116,7 @@ class ProductController {
       }
 
       return res.success({
-        message: "Xóa sản phẩm thành công",
+        message: SUCCESS_MESSAGES.PRODUCT_DELETE_SUCCESSFUL,
         data: product,
       });
     } catch (error) {

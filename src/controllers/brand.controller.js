@@ -1,6 +1,6 @@
 const brandService = require("../services/brand.service");
 const { validateCreateBrand, validateUpdateBrand } = require("../validations/brand.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class BrandController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class BrandController {
       const result = await brandService.getBrands(req.query);
 
       return res.success({
-        message: "Lấy danh sách thương hiệu thành công",
+        message: SUCCESS_MESSAGES.BRAND_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class BrandController {
       }
 
       return res.success({
-        message: "Lấy chi tiết thương hiệu thành công",
+        message: SUCCESS_MESSAGES.BRAND_DETAIL_SUCCESSFUL,
         data: brand,
       });
     } catch (error) {
@@ -55,7 +55,7 @@ class BrandController {
       const brand = await brandService.createBrand(req.body);
 
       return res.success({
-        message: "Tạo thương hiệu thành công",
+        message: SUCCESS_MESSAGES.BRAND_CREATE_SUCCESSFUL,
         data: brand,
         status: 201,
       });
@@ -88,7 +88,7 @@ class BrandController {
       }
 
       return res.success({
-        message: "Cập nhật thương hiệu thành công",
+        message: SUCCESS_MESSAGES.BRAND_UPDATE_SUCCESSFUL,
         data: brand,
       });
     } catch (error) {
@@ -110,7 +110,7 @@ class BrandController {
       }
 
       return res.success({
-        message: "Xóa thương hiệu thành công",
+        message: SUCCESS_MESSAGES.BRAND_DELETE_SUCCESSFUL,
         data: brand,
       });
     } catch (error) {

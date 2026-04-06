@@ -1,6 +1,6 @@
 const userService = require("../services/user.service");
 const { validateCreateUser, validateUpdateUser } = require("../validations/user.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class UserController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class UserController {
       const result = await userService.getUsers(req.query);
 
       return res.success({
-        message: "Lấy danh sách người dùng thành công",
+        message: SUCCESS_MESSAGES.USER_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class UserController {
       }
 
       return res.success({
-        message: "Lấy chi tiết người dùng thành công",
+        message: SUCCESS_MESSAGES.USER_DETAIL_SUCCESSFUL,
         data: user,
       });
     } catch (error) {
@@ -64,7 +64,7 @@ class UserController {
       const user = await userService.createUser(req.body);
 
       return res.success({
-        message: "Tạo người dùng thành công",
+        message: SUCCESS_MESSAGES.USER_CREATE_SUCCESSFUL,
         data: user,
         status: 201,
       });
@@ -103,7 +103,7 @@ class UserController {
       }
 
       return res.success({
-        message: "Cập nhật người dùng thành công",
+        message: SUCCESS_MESSAGES.USER_UPDATE_SUCCESSFUL,
         data: user,
       });
     } catch (error) {
@@ -118,7 +118,7 @@ class UserController {
       await userService.deleteUser(parseInt(id, 10));
 
       return res.success({
-        message: "Xóa người dùng thành công",
+        message: SUCCESS_MESSAGES.USER_DELETE_SUCCESSFUL,
       });
     } catch (error) {
       console.error(error);

@@ -1,6 +1,6 @@
 const providerService = require("../services/provider.service");
 const { validateCreateProvider, validateUpdateProvider } = require("../validations/provider.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ProviderController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class ProviderController {
       const result = await providerService.getProviders(req.query);
 
       return res.success({
-        message: "Lấy danh sách nhà cung cấp thành công",
+        message: SUCCESS_MESSAGES.PROVIDER_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class ProviderController {
       }
 
       return res.success({
-        message: "Lấy chi tiết nhà cung cấp thành công",
+        message: SUCCESS_MESSAGES.PROVIDER_DETAIL_SUCCESSFUL,
         data: provider,
       });
     } catch (error) {
@@ -55,7 +55,7 @@ class ProviderController {
       const provider = await providerService.createProvider(req.body);
 
       return res.success({
-        message: "Tạo nhà cung cấp thành công",
+        message: SUCCESS_MESSAGES.PROVIDER_CREATE_SUCCESSFUL,
         data: provider,
         status: 201,
       });
@@ -88,7 +88,7 @@ class ProviderController {
       }
 
       return res.success({
-        message: "Cập nhật nhà cung cấp thành công",
+        message: SUCCESS_MESSAGES.PROVIDER_UPDATE_SUCCESSFUL,
         data: provider,
       });
     } catch (error) {
@@ -103,7 +103,7 @@ class ProviderController {
       await providerService.deleteProvider(parseInt(id, 10));
 
       return res.success({
-        message: "Xóa nhà cung cấp thành công",
+        message: SUCCESS_MESSAGES.PROVIDER_DELETE_SUCCESSFUL,
       });
     } catch (error) {
       console.error(error);

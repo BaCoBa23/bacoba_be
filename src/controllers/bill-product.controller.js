@@ -1,6 +1,6 @@
 const billProductService = require("../services/bill-product.service");
 const { validateCreateBillProduct, validateUpdateBillProduct } = require("../validations/bill-product.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class BillProductController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class BillProductController {
       const result = await billProductService.getBillProducts(req.query);
 
       return res.success({
-        message: "Lấy danh sách sản phẩm hóa đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_PRODUCT_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class BillProductController {
       }
 
       return res.success({
-        message: "Lấy chi tiết sản phẩm hóa đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_PRODUCT_DETAIL_SUCCESSFUL,
         data: billProduct,
       });
     } catch (error) {
@@ -46,7 +46,7 @@ class BillProductController {
       const result = await billProductService.getProductsByBillId(billId, req.query);
 
       return res.success({
-        message: "Lấy danh sách sản phẩm của hoá đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_PRODUCT_BY_BILL_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -71,7 +71,7 @@ class BillProductController {
       const billProduct = await billProductService.createBillProduct(req.body);
 
       return res.success({
-        message: "Thêm sản phẩm vào hoá đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_PRODUCT_CREATE_SUCCESSFUL,
         data: billProduct,
         status: 201,
       });
@@ -110,7 +110,7 @@ class BillProductController {
       }
 
       return res.success({
-        message: "Cập nhật sản phẩm hóa đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_PRODUCT_UPDATE_SUCCESSFUL,
         data: billProduct,
       });
     } catch (error) {
@@ -125,7 +125,7 @@ class BillProductController {
       await billProductService.deleteBillProduct(parseInt(id, 10));
 
       return res.success({
-        message: "Xóa sản phẩm khỏi hoá đơn thành công",
+        message: SUCCESS_MESSAGES.BILL_PRODUCT_DELETE_SUCCESSFUL,
       });
     } catch (error) {
       console.error(error);

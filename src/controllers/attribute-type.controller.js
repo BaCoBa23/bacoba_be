@@ -1,6 +1,6 @@
 const attributeTypeService = require("../services/attribute-type.service");
 const { validateCreateAttributeType, validateUpdateAttributeType } = require("../validations/attribute-type.validation");
-const { ERROR_MESSAGES } = require("../constants");
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class AttributeTypeController {
   getList = async (req, res) => {
@@ -8,7 +8,7 @@ class AttributeTypeController {
       const result = await attributeTypeService.getAttributeTypes(req.query);
 
       return res.success({
-        message: "Lấy danh sách loại thuộc tính thành công",
+        message: SUCCESS_MESSAGES.ATTRIBUTE_TYPE_LIST_SUCCESSFUL,
         data: result.data,
         meta: result.meta,
       });
@@ -31,7 +31,7 @@ class AttributeTypeController {
       }
 
       return res.success({
-        message: "Lấy chi tiết loại thuộc tính thành công",
+        message: SUCCESS_MESSAGES.ATTRIBUTE_TYPE_DETAIL_SUCCESSFUL,
         data: attributeType,
       });
     } catch (error) {
@@ -55,7 +55,7 @@ class AttributeTypeController {
       const attributeType = await attributeTypeService.createAttributeType(req.body);
 
       return res.success({
-        message: "Tạo loại thuộc tính thành công",
+        message: SUCCESS_MESSAGES.ATTRIBUTE_TYPE_CREATE_SUCCESSFUL,
         data: attributeType,
         status: 201,
       });
@@ -88,7 +88,7 @@ class AttributeTypeController {
       }
 
       return res.success({
-        message: "Cập nhật loại thuộc tính thành công",
+        message: SUCCESS_MESSAGES.ATTRIBUTE_TYPE_UPDATE_SUCCESSFUL,
         data: attributeType,
       });
     } catch (error) {
@@ -110,7 +110,7 @@ class AttributeTypeController {
       }
 
       return res.success({
-        message: "Xóa loại thuộc tính thành công",
+        message: SUCCESS_MESSAGES.ATTRIBUTE_TYPE_DELETE_SUCCESSFUL,
         data: attributeType,
       });
     } catch (error) {
