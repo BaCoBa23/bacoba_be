@@ -1,19 +1,26 @@
 const prisma = require("../config/prisma.config");
+const { CommonStatus } = require("../enums/status.enum");
 
 class BillProductRepository {
   async findAndCount({ skip, take, where, orderBy }) {
+    // Auto filter deleted records
+    const whereWithStatus = {
+      ...where,
+      status: { not: CommonStatus.DELETED },
+    };
+
     const [data, totalItems] = await Promise.all([
       prisma.billProduct.findMany({
         skip,
         take,
-        where,
+        where: whereWithStatus,
         orderBy,
         include: {
           bill: true,
           product: true,
         },
       }),
-      prisma.billProduct.count({ where }),
+      prisma.billProduct.count({ where: whereWithStatus }),
     ]);
 
     return { data, totalItems };
@@ -30,16 +37,21 @@ class BillProductRepository {
   }
 
   async findByBillId(billId, skip, take) {
+    const whereWithStatus = {
+      billId,
+      status: { not: CommonStatus.DELETED },
+    };
+
     const [data, totalItems] = await Promise.all([
       prisma.billProduct.findMany({
-        where: { billId },
+        where: whereWithStatus,
         skip,
         take,
         include: {
           product: true,
         },
       }),
-      prisma.billProduct.count({ where: { billId } }),
+      prisma.billProduct.count({ where: whereWithStatus }),
     ]);
 
     return { data, totalItems };
@@ -47,7 +59,10 @@ class BillProductRepository {
 
   async create(data) {
     return await prisma.billProduct.create({
-      data,
+      data: {
+        ...data,
+        status: CommonStatus.ACTIVE,
+      },
       include: {
         bill: true,
         product: true,
@@ -67,8 +82,14 @@ class BillProductRepository {
   }
 
   async delete(id) {
-    return await prisma.billProduct.delete({
+    // Soft delete - update status to DELETED
+    return await prisma.billProduct.update({
       where: { id },
+      data: { status: CommonStatus.DELETED },
+      include: {
+        bill: true,
+        product: true,
+      },
     });
   }
 }

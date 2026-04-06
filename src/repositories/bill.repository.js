@@ -1,12 +1,18 @@
 const prisma = require("../config/prisma.config");
+const { CommonStatus } = require("../enums/status.enum");
 
 class BillRepository {
   async findAndCount({ skip, take, where, orderBy }) {
+    const whereWithStatus = {
+      ...where,
+      status: { not: CommonStatus.DELETED },
+    };
+
     const [data, totalItems] = await Promise.all([
       prisma.bill.findMany({
         skip,
         take,
-        where,
+        where: whereWithStatus,
         orderBy,
         include: {
           billProducts: {
@@ -16,7 +22,7 @@ class BillRepository {
           },
         },
       }),
-      prisma.bill.count({ where }),
+      prisma.bill.count({ where: whereWithStatus }),
     ]);
 
     return { data, totalItems };
@@ -37,7 +43,10 @@ class BillRepository {
 
   async create(data) {
     return await prisma.bill.create({
-      data,
+      data: {
+        ...data,
+        status: data.status || CommonStatus.ACTIVE,
+      },
       include: {
         billProducts: {
           include: {
@@ -63,8 +72,17 @@ class BillRepository {
   }
 
   async delete(id) {
-    return await prisma.bill.delete({
+    // Soft delete
+    return await prisma.bill.update({
       where: { id },
+      data: { status: CommonStatus.DELETED },
+      include: {
+        billProducts: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
   }
 }

@@ -188,7 +188,7 @@ model BillProduct {
   quantity  Int
   salePrice Float
   total     Float
-
+  status    String   @default("active")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

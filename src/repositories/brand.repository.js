@@ -1,15 +1,21 @@
 const prisma = require("../config/prisma.config");
+const { CommonStatus } = require("../enums/status.enum");
 
 class BrandRepository {
   async findAndCount({ skip, take, where, orderBy }) {
+    const whereWithStatus = {
+      ...where,
+      status: { not: CommonStatus.DELETED },
+    };
+
     const [data, totalItems] = await Promise.all([
       prisma.brand.findMany({
         skip,
         take,
-        where,
+        where: whereWithStatus,
         orderBy,
       }),
-      prisma.brand.count({ where }),
+      prisma.brand.count({ where: whereWithStatus }),
     ]);
 
     return { data, totalItems };
@@ -26,7 +32,10 @@ class BrandRepository {
 
   async create(data) {
     return await prisma.brand.create({
-      data,
+      data: {
+        ...data,
+        status: data.status || CommonStatus.ACTIVE,
+      },
     });
   }
 
@@ -38,8 +47,10 @@ class BrandRepository {
   }
 
   async delete(id) {
-    return await prisma.brand.delete({
+    // Soft delete
+    return await prisma.brand.update({
       where: { id },
+      data: { status: CommonStatus.DELETED },
     });
   }
 }

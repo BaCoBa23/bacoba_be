@@ -1,19 +1,25 @@
 const prisma = require("../config/prisma.config");
+const { CommonStatus } = require("../enums/status.enum");
 
 class ReceivedProductRepository {
   async findAndCount({ skip, take, where, orderBy }) {
+    const whereWithStatus = {
+      ...where,
+      status: { not: CommonStatus.DELETED },
+    };
+
     const [data, totalItems] = await Promise.all([
       prisma.receivedProduct.findMany({
         skip,
         take,
-        where,
+        where: whereWithStatus,
         orderBy,
         include: {
           receivedNote: true,
           product: true,
         },
       }),
-      prisma.receivedProduct.count({ where }),
+      prisma.receivedProduct.count({ where: whereWithStatus }),
     ]);
 
     return { data, totalItems };
@@ -30,16 +36,21 @@ class ReceivedProductRepository {
   }
 
   async findByReceivedNoteId(receivedNoteId, skip, take) {
+    const whereWithStatus = {
+      receivedNoteId,
+      status: { not: CommonStatus.DELETED },
+    };
+
     const [data, totalItems] = await Promise.all([
       prisma.receivedProduct.findMany({
-        where: { receivedNoteId },
+        where: whereWithStatus,
         skip,
         take,
         include: {
           product: true,
         },
       }),
-      prisma.receivedProduct.count({ where: { receivedNoteId } }),
+      prisma.receivedProduct.count({ where: whereWithStatus }),
     ]);
 
     return { data, totalItems };
@@ -47,7 +58,10 @@ class ReceivedProductRepository {
 
   async create(data) {
     return await prisma.receivedProduct.create({
-      data,
+      data: {
+        ...data,
+        status: CommonStatus.ACTIVE,
+      },
       include: {
         receivedNote: true,
         product: true,
@@ -67,8 +81,14 @@ class ReceivedProductRepository {
   }
 
   async delete(id) {
-    return await prisma.receivedProduct.delete({
+    // Soft delete
+    return await prisma.receivedProduct.update({
       where: { id },
+      data: { status: CommonStatus.DELETED },
+      include: {
+        receivedNote: true,
+        product: true,
+      },
     });
   }
 }
