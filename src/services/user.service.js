@@ -1,5 +1,6 @@
 const userRepo = require("../repositories/user.repository");
 const { buildPagination, buildMeta } = require("../utils");
+const bcrypt = require("bcrypt");
 
 class UserService {
   async getUsers(query) {
@@ -37,19 +38,26 @@ class UserService {
   }
 
   async createUser(data) {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     const userData = {
       username: data.username,
-      password: data.password,
+      password: hashedPassword,
       status: data.status || "active",
     };
 
     return await userRepo.create(userData);
   }
 
+  async verifyPassword(plainPassword, hashedPassword) {
+    return await bcrypt.compare(plainPassword, hashedPassword);
+  }
+
   async updateUser(id, data) {
     const updateData = {};
 
-    if (data.password !== undefined) updateData.password = data.password;
+    if (data.password !== undefined) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
     if (data.status !== undefined) updateData.status = data.status;
 
     return await userRepo.update(id, updateData);

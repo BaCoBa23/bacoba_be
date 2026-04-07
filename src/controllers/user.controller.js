@@ -1,6 +1,9 @@
 const userService = require("../services/user.service");
 const { validateCreateUser, validateUpdateUser } = require("../validations/user.validation");
 const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const jwt = require("jsonwebtoken");
+
+const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
 class UserController {
   getList = async (req, res) => {
@@ -76,6 +79,61 @@ class UserController {
           status: 400,
         });
       }
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
+
+  login = async (req, res) => {
+    try {
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res.error({
+          message: "Vui lòng nhập username và password",
+          status: 400,
+        });
+      }
+
+      const user = await userService.getUserByUsername(username);
+
+      if (!user) {
+        return res.error({
+          message: "Tên đăng nhập hoặc mật khẩu không đúng",
+          status: 401,
+        });
+      }
+
+      const isPasswordValid = await userService.verifyPassword(password, user.password);
+
+      if (!isPasswordValid) {
+        return res.error({
+          message: "Tên đăng nhập hoặc mật khẩu không đúng",
+          status: 401,
+        });
+      }
+
+      // Tạo JWT Token
+      const token = jwt.sign(
+        { 
+          id: user.id, 
+          username: user.username 
+        },
+        JWT_SECRET,
+        { expiresIn: "24h" }
+      );
+
+      // Không trả password về client
+      const { password: _, ...userInfo } = user;
+
+      return res.success({
+        message: "Đăng nhập thành công",
+        data: {
+          user: userInfo,
+          token,
+        },
+      });
+    } catch (error) {
+      console.error(error);
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
     }
   };
