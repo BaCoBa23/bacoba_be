@@ -60,6 +60,7 @@ model AttributeType {
 
 model Product {
   id       String    @id
+  name     String    @default("Sản Phẩm")
   parentId String?
   parent   Product?  @relation("ProductVariants", fields: [parentId], references: [id])
   variants Product[] @relation("ProductVariants")
