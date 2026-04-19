@@ -39,6 +39,7 @@ class ProductService {
   async createProduct(data) {
     const productData = {
       id: data.id,
+      name: data.name || "Sản Phẩm",
       productTypeId: parseInt(data.productTypeId, 10),
       brandId: parseInt(data.brandId, 10),
       initialPrice: parseFloat(data.initialPrice),
@@ -56,6 +57,7 @@ class ProductService {
   async updateProduct(id, data) {
     const updateData = {};
 
+    if (data.name !== undefined) updateData.name = data.name;
     if (data.productTypeId !== undefined) updateData.productTypeId = parseInt(data.productTypeId, 10);
     if (data.brandId !== undefined) updateData.brandId = parseInt(data.brandId, 10);
     if (data.initialPrice !== undefined) updateData.initialPrice = parseFloat(data.initialPrice);
