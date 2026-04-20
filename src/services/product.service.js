@@ -1,5 +1,10 @@
 const productRepo = require("../repositories/product.repository");
-const { buildPagination, buildMeta } = require("../utils");
+const {
+  buildPagination,
+  buildMeta,
+  generateProductId,
+  generateCombinations,
+} = require("../utils");
 
 class ProductService {
   async getProducts(query) {
@@ -71,18 +76,53 @@ class ProductService {
   }
 
   async createProduct(data) {
+    const parentId = generateProductId();
     const productData = {
-      id: data.id,
+      id: parentId,
+      name: data.name,
       productTypeId: parseInt(data.productTypeId, 10),
       brandId: parseInt(data.brandId, 10),
-      initialPrice: parseFloat(data.initialPrice),
-      salePrice: parseFloat(data.salePrice),
-      quantity: parseInt(data.quantity, 10),
+      initialPrice: parseFloat(data.initialPrice) || 0,
+      salePrice: parseFloat(data.salePrice) || 0,
+      quantity: 0,
       description: data.description || null,
-      barcode: data.barcode || null,
+      barcode: data.barcode || parentId,
       status: data.status || "active",
-      parentId: data.parentId || null,
     };
+    if (
+      data.attributes &&
+      Array.isArray(data.attributes) &&
+      data.attributes.length > 0
+    ) {
+      const combinations = generateCombinations(data.attributes);
+      const variantsData = combinations.map((combo, index) => {
+        const variantId = `${parentId}-${index + 1}`;
+        const variantNameSuffix = combo.map((c) => c.value).join("-");
+
+        return {
+          id: variantId,
+          name: `${data.name} - ${variantNameSuffix}`,
+          productTypeId: parseInt(data.productTypeId, 10),
+          brandId: parseInt(data.brandId, 10),
+          initialPrice: parseFloat(data.initialPrice) || 0,
+          salePrice: parseFloat(data.salePrice) || 0,
+          quantity: 0,
+          status: "active",
+          barcode: variantId,
+          description:
+            data.description || `${data.name} - ${variantNameSuffix}`,
+          productAttributes: {
+            create: combo.map((attr) => ({
+              attributeId: parseInt(attr.id, 10),
+              content: attr.value,
+            })),
+          },
+        };
+      });
+      productData.variants = {
+        create: variantsData,
+      };
+    }
 
     return await productRepo.create(productData);
   }

@@ -51,6 +51,15 @@ class ProductRepository {
       include: {
         brand: true,
         type: true,
+        variants: {
+          include: {
+            productAttributes: {
+              include: {
+                attribute: true,
+              },
+            },
+          },
+        },
       },
     });
   }
