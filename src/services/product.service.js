@@ -77,18 +77,27 @@ class ProductService {
 
   async createProduct(data) {
     const parentId = generateProductId();
+    const productTypeId = parseInt(data.productTypeId, 10);
+    const brandId = data.brandId ? parseInt(data.brandId, 10) : null;
+
     const productData = {
       id: parentId,
       name: data.name,
-      productTypeId: parseInt(data.productTypeId, 10),
-      brandId: parseInt(data.brandId, 10),
       initialPrice: parseFloat(data.initialPrice) || 0,
       salePrice: parseFloat(data.salePrice) || 0,
       quantity: 0,
       description: data.description || null,
       barcode: data.barcode || parentId,
       status: data.status || "active",
+      type: {
+        connect: { id: productTypeId },
+      },
     };
+    if (brandId) {
+      productData.brand = {
+        connect: { id: brandId },
+      };
+    }
     if (
       data.attributes &&
       Array.isArray(data.attributes) &&
@@ -99,11 +108,9 @@ class ProductService {
         const variantId = `${parentId}-${index + 1}`;
         const variantNameSuffix = combo.map((c) => c.value).join("-");
 
-        return {
+        const variantPayload = {
           id: variantId,
           name: `${data.name} - ${variantNameSuffix}`,
-          productTypeId: parseInt(data.productTypeId, 10),
-          brandId: parseInt(data.brandId, 10),
           initialPrice: parseFloat(data.initialPrice) || 0,
           salePrice: parseFloat(data.salePrice) || 0,
           quantity: 0,
@@ -111,6 +118,9 @@ class ProductService {
           barcode: variantId,
           description:
             data.description || `${data.name} - ${variantNameSuffix}`,
+          type: {
+            connect: { id: productTypeId },
+          },
           productAttributes: {
             create: combo.map((attr) => ({
               attributeId: parseInt(attr.id, 10),
@@ -118,7 +128,15 @@ class ProductService {
             })),
           },
         };
+        if (brandId) {
+          variantPayload.brand = {
+            connect: { id: brandId },
+          };
+        }
+
+        return variantPayload;
       });
+
       productData.variants = {
         create: variantsData,
       };

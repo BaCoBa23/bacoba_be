@@ -7,10 +7,6 @@ const validateCreateProduct = (data) => {
     errors.productTypeId = ERROR_VALIDATIONS.PRODUCT_TYPE_ID_REQUIRED;
   }
 
-  if (!data.brandId || !Number.isInteger(Number(data.brandId))) {
-    errors.brandId = ERROR_VALIDATIONS.PRODUCT_BRAND_ID_REQUIRED;
-  }
-
   if (
     data.initialPrice === undefined ||
     data.initialPrice === null ||
