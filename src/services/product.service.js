@@ -5,7 +5,7 @@ class ProductService {
   async getProducts(query) {
     const { page, pageSize, skip, take, orderBy } = buildPagination(query);
 
-    const where = {};
+    const where = { parentId: null };
     const { search, brandId, typeId, status } = query;
 
     if (search) {
@@ -25,9 +25,43 @@ class ProductService {
       where,
       orderBy,
     });
+    const formattedData = data.map((product) => {
+      return {
+        id: product.id,
+        name: product.name,
+        productType: product.type, // Đổi 'type' của Prisma thành 'productType'
+        initialPrice: product.initialPrice,
+        salePrice: product.salePrice,
+        quantity: product.quantity,
+        description: product.description,
+        barcode: product.barcode,
+        status: product.status,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        // Map mảng variants
+        variants: product.variants.map((variant) => ({
+          id: variant.id,
+          name: variant.name,
+          productType: variant.type,
+          initialPrice: variant.initialPrice,
+          salePrice: variant.salePrice,
+          quantity: variant.quantity,
+          description: variant.description,
+          barcode: variant.barcode,
+          status: variant.status,
+          // Bóc tách productAttributes thành mảng attributes [{ id, value }]
+          attributes: variant.productAttributes.map((pa) => ({
+            id: pa.attribute.id,
+            value: pa.attribute.value,
+          })),
+          createdAt: variant.createdAt,
+          updatedAt: variant.updatedAt,
+        })),
+      };
+    });
 
     return {
-      data,
+      data: formattedData, // Trả về mảng đã format
       meta: buildMeta(totalItems, page, pageSize),
     };
   }
@@ -56,12 +90,18 @@ class ProductService {
   async updateProduct(id, data) {
     const updateData = {};
 
-    if (data.productTypeId !== undefined) updateData.productTypeId = parseInt(data.productTypeId, 10);
-    if (data.brandId !== undefined) updateData.brandId = parseInt(data.brandId, 10);
-    if (data.initialPrice !== undefined) updateData.initialPrice = parseFloat(data.initialPrice);
-    if (data.salePrice !== undefined) updateData.salePrice = parseFloat(data.salePrice);
-    if (data.quantity !== undefined) updateData.quantity = parseInt(data.quantity, 10);
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.productTypeId !== undefined)
+      updateData.productTypeId = parseInt(data.productTypeId, 10);
+    if (data.brandId !== undefined)
+      updateData.brandId = parseInt(data.brandId, 10);
+    if (data.initialPrice !== undefined)
+      updateData.initialPrice = parseFloat(data.initialPrice);
+    if (data.salePrice !== undefined)
+      updateData.salePrice = parseFloat(data.salePrice);
+    if (data.quantity !== undefined)
+      updateData.quantity = parseInt(data.quantity, 10);
+    if (data.description !== undefined)
+      updateData.description = data.description;
     if (data.barcode !== undefined) updateData.barcode = data.barcode;
     if (data.status !== undefined) updateData.status = data.status;
     if (data.parentId !== undefined) updateData.parentId = data.parentId;

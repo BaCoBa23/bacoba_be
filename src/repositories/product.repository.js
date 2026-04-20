@@ -11,6 +11,16 @@ class ProductRepository {
         include: {
           brand: true,
           type: true,
+          variants: {
+            include: {
+              type: true, // Lấy type cho biến thể
+              productAttributes: {
+                include: {
+                  attribute: true, // Lấy detail thuộc tính (Màu, Size...)
+                },
+              },
+            },
+          },
         },
       }),
       prisma.product.count({ where }),
