@@ -1,6 +1,12 @@
 const prisma = require("../config/prisma.config");
 
 class ProductTypeRepository {
+  async findAll({ where }) {
+    return await prisma.productType.findMany({
+      where,
+    });
+  }
+
   async findAndCount({ skip, take, where, orderBy }) {
     const [data, totalItems] = await Promise.all([
       prisma.productType.findMany({

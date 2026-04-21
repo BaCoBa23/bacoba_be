@@ -1,6 +1,15 @@
 const prisma = require("../config/prisma.config");
 
 class AttributeRepository {
+  async findAll({ where }) {
+    return await prisma.attribute.findMany({
+      where,
+      include: {
+        attributeType: true,
+      },
+    });
+  }
+
   async findAndCount({ skip, take, where, orderBy }) {
     const [data, totalItems] = await Promise.all([
       prisma.attribute.findMany({

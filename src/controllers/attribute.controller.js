@@ -9,8 +9,7 @@ class AttributeController {
 
       return res.success({
         message: SUCCESS_MESSAGES.ATTRIBUTE_LIST_SUCCESSFUL,
-        data: result.data,
-        meta: result.meta,
+        data: result,
       });
     } catch (error) {
       console.error(error);

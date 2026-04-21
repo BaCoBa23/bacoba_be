@@ -1,10 +1,7 @@
 const attributeRepo = require("../repositories/attribute.repository");
-const { buildPagination, buildMeta } = require("../utils");
 
 class AttributeService {
   async getAttributes(query) {
-    const { page, pageSize, skip, take, orderBy } = buildPagination(query);
-
     const where = {};
     const { search, attributeTypeId, status } = query;
 
@@ -16,17 +13,11 @@ class AttributeService {
     if (attributeTypeId) where.attributeTypeId = parseInt(attributeTypeId, 10);
     if (status) where.status = status;
 
-    const { data, totalItems } = await attributeRepo.findAndCount({
-      skip,
-      take,
+    const data = await attributeRepo.findAll({
       where,
-      orderBy,
     });
 
-    return {
-      data,
-      meta: buildMeta(totalItems, page, pageSize),
-    };
+    return data;
   }
 
   async getAttributeById(id) {

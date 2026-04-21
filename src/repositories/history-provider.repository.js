@@ -1,11 +1,18 @@
 const prisma = require("../config/prisma.config");
 
 class HistoryProviderRepository {
-  async findAndCount({ skip, take, where, orderBy }) {
+  async findAll({ where }) {
+    return await prisma.historyProvider.findMany({
+      where,
+      include: {
+        provider: true,
+      },
+    });
+  }
+
+  async findAndCount({ where, orderBy }) {
     const [data, totalItems] = await Promise.all([
       prisma.historyProvider.findMany({
-        skip,
-        take,
         where,
         orderBy,
         include: {
@@ -27,20 +34,13 @@ class HistoryProviderRepository {
     });
   }
 
-  async findByProviderId(providerId, skip, take) {
-    const [data, totalItems] = await Promise.all([
-      prisma.historyProvider.findMany({
-        where: { providerId },
-        skip,
-        take,
-        include: {
-          provider: true,
-        },
-      }),
-      prisma.historyProvider.count({ where: { providerId } }),
-    ]);
-
-    return { data, totalItems };
+  async findByProviderId(providerId) {
+    return await prisma.historyProvider.findMany({
+      where: { providerId },
+      include: {
+        provider: true,
+      },
+    });
   }
 
   async create(data) {

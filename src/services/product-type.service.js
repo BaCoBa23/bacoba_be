@@ -3,8 +3,6 @@ const { buildPagination, buildMeta } = require("../utils");
 
 class ProductTypeService {
   async getProductTypes(query) {
-    const { page, pageSize, skip, take, orderBy } = buildPagination(query);
-
     const where = {};
     const { search, status } = query;
 
@@ -15,17 +13,11 @@ class ProductTypeService {
     }
     if (status) where.status = status;
 
-    const { data, totalItems } = await productTypeRepo.findAndCount({
-      skip,
-      take,
+    const data = await productTypeRepo.findAll({
       where,
-      orderBy,
     });
 
-    return {
-      data,
-      meta: buildMeta(totalItems, page, pageSize),
-    };
+    return data;
   }
 
   async getProductTypeById(id) {

@@ -9,8 +9,7 @@ class HistoryProviderController {
 
       return res.success({
         message: SUCCESS_MESSAGES.HISTORY_PROVIDER_LIST_SUCCESSFUL,
-        data: result.data,
-        meta: result.meta,
+        data: result,
       });
     } catch (error) {
       console.error(error);
@@ -47,8 +46,7 @@ class HistoryProviderController {
 
       return res.success({
         message: SUCCESS_MESSAGES.HISTORY_PROVIDER_BY_PROVIDER_LIST_SUCCESSFUL,
-        data: result.data,
-        meta: result.meta,
+        data: result,
       });
     } catch (error) {
       console.error(error);

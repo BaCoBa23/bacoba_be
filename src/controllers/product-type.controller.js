@@ -9,8 +9,7 @@ class ProductTypeController {
 
       return res.success({
         message: SUCCESS_MESSAGES.PRODUCT_TYPE_LIST_SUCCESSFUL,
-        data: result.data,
-        meta: result.meta,
+        data: result,
       });
     } catch (error) {
       console.error(error);

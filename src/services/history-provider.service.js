@@ -1,27 +1,18 @@
 const historyProviderRepo = require("../repositories/history-provider.repository");
-const { buildPagination, buildMeta } = require("../utils");
 
 class HistoryProviderService {
   async getHistories(query) {
-    const { page, pageSize, skip, take, orderBy } = buildPagination(query);
-
     const where = {};
     const { providerId, status } = query;
 
     if (providerId) where.providerId = parseInt(providerId, 10);
     if (status) where.status = status;
 
-    const { data, totalItems } = await historyProviderRepo.findAndCount({
-      skip,
-      take,
+    const data = await historyProviderRepo.findAll({
       where,
-      orderBy,
     });
 
-    return {
-      data,
-      meta: buildMeta(totalItems, page, pageSize),
-    };
+    return data;
   }
 
   async getHistoryById(id) {
@@ -29,13 +20,9 @@ class HistoryProviderService {
   }
 
   async getHistoriesByProviderId(providerId, query) {
-    const { page, pageSize, skip, take } = buildPagination(query);
-    const { data, totalItems } = await historyProviderRepo.findByProviderId(parseInt(providerId, 10), skip, take);
+    const data = await historyProviderRepo.findByProviderId(parseInt(providerId, 10));
 
-    return {
-      data,
-      meta: buildMeta(totalItems, page, pageSize),
-    };
+    return data;
   }
 
   async createHistory(data) {
