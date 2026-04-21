@@ -18,9 +18,38 @@ class ReceivedNoteService {
       where,
       orderBy,
     });
+    const formattedData = data.map((note) => ({
+      id: note.id,
+      provider: note.provider
+        ? {
+            id: note.provider.id,
+            name: note.provider.name,
+            status: note.provider.status,
+          }
+        : null,
+      phoneNumber: note.phoneNumber,
+      discount: note.discount,
+      payedMoney: note.payedMoney,
+      debtMoney: note.debtMoney,
+      total: note.total,
+      description: note.description,
+      status: note.status,
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
+      receivedProducts: note.receivedProducts.map((rp) => ({
+        id: rp.id,
+        productId: rp.productId,
+        productName: rp.product?.name || "Sản Phẩm", // Đưa name của product ra ngoài
+        addQuantity: rp.addQuantity,
+        discount: rp.discount,
+        total: rp.total,
+        createdAt: rp.createdAt,
+        updatedAt: rp.updatedAt,
+      })),
+    }));
 
     return {
-      data,
+      data: formattedData,
       meta: buildMeta(totalItems, page, pageSize),
     };
   }
@@ -31,7 +60,11 @@ class ReceivedNoteService {
 
   async getReceivedNotesByProviderId(providerId, query) {
     const { page, pageSize, skip, take } = buildPagination(query);
-    const { data, totalItems } = await receivedNoteRepo.findByProviderId(parseInt(providerId, 10), skip, take);
+    const { data, totalItems } = await receivedNoteRepo.findByProviderId(
+      parseInt(providerId, 10),
+      skip,
+      take,
+    );
 
     return {
       data,
@@ -52,7 +85,11 @@ class ReceivedNoteService {
     };
 
     // Nếu có receivedProducts, tạo receivedNote với nested create
-    if (data.receivedProducts && Array.isArray(data.receivedProducts) && data.receivedProducts.length > 0) {
+    if (
+      data.receivedProducts &&
+      Array.isArray(data.receivedProducts) &&
+      data.receivedProducts.length > 0
+    ) {
       const receivedProductsData = data.receivedProducts.map((rp) => ({
         productId: rp.productId,
         addQuantity: parseInt(rp.addQuantity, 10),
@@ -85,12 +122,17 @@ class ReceivedNoteService {
   async updateReceivedNote(id, data) {
     const updateData = {};
 
-    if (data.phoneNumber !== undefined) updateData.phoneNumber = data.phoneNumber;
-    if (data.discount !== undefined) updateData.discount = parseFloat(data.discount);
-    if (data.payedMoney !== undefined) updateData.payedMoney = parseFloat(data.payedMoney);
-    if (data.debtMoney !== undefined) updateData.debtMoney = parseFloat(data.debtMoney);
+    if (data.phoneNumber !== undefined)
+      updateData.phoneNumber = data.phoneNumber;
+    if (data.discount !== undefined)
+      updateData.discount = parseFloat(data.discount);
+    if (data.payedMoney !== undefined)
+      updateData.payedMoney = parseFloat(data.payedMoney);
+    if (data.debtMoney !== undefined)
+      updateData.debtMoney = parseFloat(data.debtMoney);
     if (data.total !== undefined) updateData.total = parseFloat(data.total);
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.description !== undefined)
+      updateData.description = data.description;
     if (data.status !== undefined) updateData.status = data.status;
 
     // Nếu có receivedProducts, delete old ones và create new ones
