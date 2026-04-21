@@ -1,5 +1,8 @@
 const productService = require("../services/product.service");
-const { validateCreateProduct, validateUpdateProduct } = require("../validations/product.validation");
+const {
+  validateCreateProduct,
+  validateUpdateProduct,
+} = require("../validations/product.validation");
 const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ProductController {
@@ -43,7 +46,6 @@ class ProductController {
   create = async (req, res) => {
     try {
       const errors = validateCreateProduct(req.body);
-
       if (Object.keys(errors).length > 0) {
         return res.error({
           message: MESSAGES.VALIDATION_ERROR,
@@ -60,7 +62,7 @@ class ProductController {
         status: 201,
       });
     } catch (error) {
-      console.error(error);
+      console.error("Error at createProduct:", error);
       if (error.code === "P2002") {
         return res.error({
           message: "ID sản phẩm đã tồn tại",

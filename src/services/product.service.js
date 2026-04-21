@@ -1,11 +1,16 @@
 const productRepo = require("../repositories/product.repository");
-const { buildPagination, buildMeta } = require("../utils");
+const {
+  buildPagination,
+  buildMeta,
+  generateProductId,
+  generateCombinations,
+} = require("../utils");
 
 class ProductService {
   async getProducts(query) {
     const { page, pageSize, skip, take, orderBy } = buildPagination(query);
 
-    const where = {};
+    const where = { parentId: null };
     const { search, brandId, typeId, status } = query;
 
     if (search) {
@@ -25,9 +30,43 @@ class ProductService {
       where,
       orderBy,
     });
+    const formattedData = data.map((product) => {
+      return {
+        id: product.id,
+        name: product.name,
+        productType: product.type, // Đổi 'type' của Prisma thành 'productType'
+        initialPrice: product.initialPrice,
+        salePrice: product.salePrice,
+        quantity: product.quantity,
+        description: product.description,
+        barcode: product.barcode,
+        status: product.status,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        // Map mảng variants
+        variants: product.variants.map((variant) => ({
+          id: variant.id,
+          name: variant.name,
+          productType: variant.type,
+          initialPrice: variant.initialPrice,
+          salePrice: variant.salePrice,
+          quantity: variant.quantity,
+          description: variant.description,
+          barcode: variant.barcode,
+          status: variant.status,
+          // Bóc tách productAttributes thành mảng attributes [{ id, value }]
+          attributes: variant.productAttributes.map((pa) => ({
+            id: pa.attribute.id,
+            value: pa.attribute.value,
+          })),
+          createdAt: variant.createdAt,
+          updatedAt: variant.updatedAt,
+        })),
+      };
+    });
 
     return {
-      data,
+      data: formattedData, // Trả về mảng đã format
       meta: buildMeta(totalItems, page, pageSize),
     };
   }
@@ -37,19 +76,71 @@ class ProductService {
   }
 
   async createProduct(data) {
+    const parentId = generateProductId();
+    const productTypeId = parseInt(data.productTypeId, 10);
+    const brandId = data.brandId ? parseInt(data.brandId, 10) : null;
+
     const productData = {
-      id: data.id,
-      name: data.name || "Sản Phẩm",
-      productTypeId: parseInt(data.productTypeId, 10),
-      brandId: parseInt(data.brandId, 10),
-      initialPrice: parseFloat(data.initialPrice),
-      salePrice: parseFloat(data.salePrice),
-      quantity: parseInt(data.quantity, 10),
+      id: parentId,
+      name: data.name,
+      initialPrice: parseFloat(data.initialPrice) || 0,
+      salePrice: parseFloat(data.salePrice) || 0,
+      quantity: 0,
       description: data.description || null,
-      barcode: data.barcode || null,
+      barcode: data.barcode || parentId,
       status: data.status || "active",
-      parentId: data.parentId || null,
+      type: {
+        connect: { id: productTypeId },
+      },
     };
+    if (brandId) {
+      productData.brand = {
+        connect: { id: brandId },
+      };
+    }
+    if (
+      data.attributes &&
+      Array.isArray(data.attributes) &&
+      data.attributes.length > 0
+    ) {
+      const combinations = generateCombinations(data.attributes);
+      const variantsData = combinations.map((combo, index) => {
+        const variantId = `${parentId}-${index + 1}`;
+        const variantNameSuffix = combo.map((c) => c.value).join("-");
+
+        const variantPayload = {
+          id: variantId,
+          name: `${data.name} - ${variantNameSuffix}`,
+          initialPrice: parseFloat(data.initialPrice) || 0,
+          salePrice: parseFloat(data.salePrice) || 0,
+          quantity: 0,
+          status: "active",
+          barcode: variantId,
+          description:
+            data.description || `${data.name} - ${variantNameSuffix}`,
+          type: {
+            connect: { id: productTypeId },
+          },
+          productAttributes: {
+            create: combo.map((attr) => ({
+              attributeId: parseInt(attr.id, 10),
+              content: attr.value,
+            })),
+          },
+        };
+        if (brandId) {
+          variantPayload.brand = {
+            connect: { id: brandId },
+          };
+        }
+
+        return variantPayload;
+      });
+
+      productData.variants = {
+        create: variantsData,
+      };
+    }
 
     return await productRepo.create(productData);
   }
@@ -57,13 +148,18 @@ class ProductService {
   async updateProduct(id, data) {
     const updateData = {};
 
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.productTypeId !== undefined) updateData.productTypeId = parseInt(data.productTypeId, 10);
-    if (data.brandId !== undefined) updateData.brandId = parseInt(data.brandId, 10);
-    if (data.initialPrice !== undefined) updateData.initialPrice = parseFloat(data.initialPrice);
-    if (data.salePrice !== undefined) updateData.salePrice = parseFloat(data.salePrice);
-    if (data.quantity !== undefined) updateData.quantity = parseInt(data.quantity, 10);
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.productTypeId !== undefined)
+      updateData.productTypeId = parseInt(data.productTypeId, 10);
+    if (data.brandId !== undefined)
+      updateData.brandId = parseInt(data.brandId, 10);
+    if (data.initialPrice !== undefined)
+      updateData.initialPrice = parseFloat(data.initialPrice);
+    if (data.salePrice !== undefined)
+      updateData.salePrice = parseFloat(data.salePrice);
+    if (data.quantity !== undefined)
+      updateData.quantity = parseInt(data.quantity, 10);
+    if (data.description !== undefined)
+      updateData.description = data.description;
     if (data.barcode !== undefined) updateData.barcode = data.barcode;
     if (data.status !== undefined) updateData.status = data.status;
     if (data.parentId !== undefined) updateData.parentId = data.parentId;

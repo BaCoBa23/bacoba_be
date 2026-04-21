@@ -4,9 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")  {
-    "name": "Quần Áo"
-  }
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -70,8 +68,8 @@ model Product {
   productTypeId Int
   type          ProductType @relation(fields: [productTypeId], references: [id])
 
-  brandId Int
-  brand   Brand @relation(fields: [brandId], references: [id])
+  brandId Int?
+  brand   Brand? @relation(fields: [brandId], references: [id])
 
   initialPrice Float
   salePrice    Float
