@@ -1,5 +1,8 @@
 const receivedNoteService = require("../services/received-note.service");
-const { validateCreateReceivedNote, validateUpdateReceivedNote } = require("../validations/received-note.validation");
+const {
+  validateCreateReceivedNote,
+  validateUpdateReceivedNote,
+} = require("../validations/received-note.validation");
 const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class ReceivedNoteController {
@@ -21,7 +24,9 @@ class ReceivedNoteController {
   getById = async (req, res) => {
     try {
       const { id } = req.params;
-      const receivedNote = await receivedNoteService.getReceivedNoteById(parseInt(id, 10));
+      const receivedNote = await receivedNoteService.getReceivedNoteById(
+        parseInt(id, 10),
+      );
 
       if (!receivedNote) {
         return res.error({
@@ -43,7 +48,10 @@ class ReceivedNoteController {
   getByProviderId = async (req, res) => {
     try {
       const { providerId } = req.params;
-      const result = await receivedNoteService.getReceivedNotesByProviderId(providerId, req.query);
+      const result = await receivedNoteService.getReceivedNotesByProviderId(
+        providerId,
+        req.query,
+      );
 
       return res.success({
         message: SUCCESS_MESSAGES.RECEIVED_NOTE_BY_PROVIDER_LIST_SUCCESSFUL,
@@ -68,7 +76,9 @@ class ReceivedNoteController {
         });
       }
 
-      const receivedNote = await receivedNoteService.createReceivedNote(req.body);
+      const receivedNote = await receivedNoteService.createReceivedNote(
+        req.body,
+      );
 
       return res.success({
         message: SUCCESS_MESSAGES.RECEIVED_NOTE_CREATE_SUCCESSFUL,
@@ -100,7 +110,10 @@ class ReceivedNoteController {
         });
       }
 
-      const receivedNote = await receivedNoteService.updateReceivedNote(parseInt(id, 10), req.body);
+      const receivedNote = await receivedNoteService.updateReceivedNote(
+        parseInt(id, 10),
+        req.body,
+      );
 
       if (!receivedNote) {
         return res.error({

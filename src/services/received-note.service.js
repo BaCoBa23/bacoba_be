@@ -1,6 +1,7 @@
 const receivedNoteRepo = require("../repositories/received-note.repository");
 const { buildPagination, buildMeta } = require("../utils");
 const prisma = require("../config/prisma.config");
+const { ReceiveNoteStatus } = require("../enums/status.enum");
 
 class ReceivedNoteService {
   async getReceivedNotes(query) {
@@ -73,6 +74,7 @@ class ReceivedNoteService {
   }
 
   async createReceivedNote(data) {
+    const isConfirm = data.status === ReceiveNoteStatus.CONFIRM;
     const receivedNoteData = {
       providerId: parseInt(data.providerId, 10),
       phoneNumber: data.phoneNumber || null,
@@ -81,42 +83,22 @@ class ReceivedNoteService {
       debtMoney: parseFloat(data.debtMoney) || 0,
       total: parseFloat(data.total),
       description: data.description || null,
-      status: data.status || "pending",
+      status: data.status || ReceiveNoteStatus.DRAFT,
     };
 
-    // Nếu có receivedProducts, tạo receivedNote với nested create
-    if (
-      data.receivedProducts &&
-      Array.isArray(data.receivedProducts) &&
-      data.receivedProducts.length > 0
-    ) {
-      const receivedProductsData = data.receivedProducts.map((rp) => ({
-        productId: rp.productId,
-        addQuantity: parseInt(rp.addQuantity, 10),
-        discount: parseFloat(rp.discount) || 0,
-        description: rp.description || null,
-        total: parseFloat(rp.total),
-      }));
+    const receivedProductsData = (data.receivedProducts || []).map((rp) => ({
+      productId: rp.productId,
+      addQuantity: parseInt(rp.addQuantity, 10),
+      discount: parseFloat(rp.discount) || 0,
+      description: rp.description || null,
+      total: parseFloat(rp.total),
+    }));
 
-      return await prisma.receivedNote.create({
-        data: {
-          ...receivedNoteData,
-          receivedProducts: {
-            create: receivedProductsData,
-          },
-        },
-        include: {
-          receivedProducts: {
-            include: {
-              product: true,
-            },
-          },
-        },
-      });
-    }
-
-    // Nếu không có receivedProducts, tạo receivedNote bình thường
-    return await receivedNoteRepo.create(receivedNoteData);
+    return await receivedNoteRepo.createWithTransaction(
+      receivedNoteData,
+      receivedProductsData,
+      isConfirm,
+    );
   }
 
   async updateReceivedNote(id, data) {

@@ -11,4 +11,10 @@ const CommonStatus = {
   DELETED: "deleted",
 };
 
-module.exports = { ProductStatus, CommonStatus };
+const ReceiveNoteStatus = {
+  DRAFT: "draft",
+  CONFIRM: "confirm",
+  CANCELED: "canceled",
+};
+
+module.exports = { ProductStatus, CommonStatus, ReceiveNoteStatus };

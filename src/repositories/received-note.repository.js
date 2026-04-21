@@ -57,17 +57,56 @@ class ReceivedNoteRepository {
     return { data, totalItems };
   }
 
-  async create(data) {
-    return await prisma.receivedNote.create({
-      data,
-      include: {
-        provider: true,
-        receivedProducts: {
-          include: {
-            product: true,
+  async createWithTransaction(noteData, receivedProductsData, isConfirm) {
+    return await prisma.$transaction(async (tx) => {
+      const note = await tx.receivedNote.create({
+        data: {
+          ...noteData,
+          receivedProducts: {
+            create: receivedProductsData,
           },
         },
-      },
+        include: {
+          provider: true,
+          receivedProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      if (isConfirm) {
+        await tx.provider.update({
+          where: { id: note.providerId },
+          data: {
+            total: { increment: note.total },
+            debtTotal: { increment: note.debtMoney },
+          },
+        });
+
+        if (receivedProductsData && receivedProductsData.length > 0) {
+          for (const rp of receivedProductsData) {
+            const updatedProduct = await tx.product.update({
+              where: { id: rp.productId },
+              data: {
+                quantity: { increment: rp.addQuantity },
+              },
+            });
+
+            if (updatedProduct.parentId) {
+              await tx.product.update({
+                where: { id: updatedProduct.parentId },
+                data: {
+                  quantity: { increment: rp.addQuantity },
+                },
+              });
+            }
+          }
+        }
+      }
+
+      return note;
     });
   }
 
