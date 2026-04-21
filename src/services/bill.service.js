@@ -3,6 +3,39 @@ const billProductRepo = require("../repositories/bill-product.repository");
 const { buildPagination, buildMeta } = require("../utils");
 const prisma = require("../config/prisma.config");
 
+// Format bill data to match mock structure
+const formatBill = (bill) => {
+  if (!bill) return null;
+  
+  const year = new Date(bill.createdAt).getFullYear();
+  const paddedId = String(bill.id).padStart(3, '0');
+  
+  return {
+    id: `BILL-${year}-${paddedId}`, // Format: BILL-2026-001
+    exchange: bill.exchange || null,
+    name: bill.name,
+    customerName: bill.customerName,
+    phoneNumber: bill.phoneNumber,
+    discount: bill.discount,
+    total: bill.total,
+    status: bill.status,
+    createdAt: bill.createdAt,
+    updatedAt: bill.updatedAt,
+    billProducts: bill.billProducts ? bill.billProducts.map((bp) => {
+      const bpPaddedId = String(bp.id).padStart(3, '0');
+      return {
+        id: `BP-${bpPaddedId}`, // Format: BP-001
+        productId: bp.productId,
+        productName: bp.product?.name || "", // Extract product name
+        quantity: bp.quantity,
+        salePrice: bp.salePrice,
+        total: bp.total,
+        status: bp.status,
+      };
+    }) : [],
+  };
+};
+
 class BillService {
   async getBills(query) {
     const { page, pageSize, skip, take, orderBy } = buildPagination(query);
@@ -26,14 +59,17 @@ class BillService {
       orderBy,
     });
 
+    const formattedData = data.map(formatBill);
+
     return {
-      data,
+      data: formattedData,
       meta: buildMeta(totalItems, page, pageSize),
     };
   }
 
   async getBillById(id) {
-    return await billRepo.findById(id);
+    const bill = await billRepo.findById(id);
+    return formatBill(bill);
   }
 
   async createBill(data) {
@@ -56,7 +92,7 @@ class BillService {
         total: parseFloat(bp.total),
       }));
 
-      return await prisma.bill.create({
+      const bill = await prisma.bill.create({
         data: {
           ...billData,
           billProducts: {
@@ -69,12 +105,15 @@ class BillService {
               product: true,
             },
           },
+          exchange: true,
         },
       });
+      return formatBill(bill);
     }
 
     // Nếu không có billProducts, tạo bill bình thường
-    return await billRepo.create(billData);
+    const bill = await billRepo.create(billData);
+    return formatBill(bill);
   }
 
   async updateBill(id, data) {
@@ -97,7 +136,7 @@ class BillService {
         total: parseFloat(bp.total),
       }));
 
-      return await prisma.bill.update({
+      const bill = await prisma.bill.update({
         where: { id },
         data: {
           ...updateData,
@@ -112,16 +151,20 @@ class BillService {
               product: true,
             },
           },
+          exchange: true,
         },
       });
+      return formatBill(bill);
     }
 
     // Nếu không có billProducts, chỉ update bill
-    return await billRepo.update(id, updateData);
+    const bill = await billRepo.update(id, updateData);
+    return formatBill(bill);
   }
 
   async deleteBill(id) {
-    return await billRepo.delete(id);
+    const bill = await billRepo.delete(id);
+    return formatBill(bill);
   }
 }
 

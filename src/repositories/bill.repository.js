@@ -20,6 +20,7 @@ class BillRepository {
               product: true,
             },
           },
+          exchange: true,
         },
       }),
       prisma.bill.count({ where: whereWithStatus }),
@@ -37,6 +38,7 @@ class BillRepository {
             product: true,
           },
         },
+        exchange: true,
       },
     });
   }
@@ -53,6 +55,7 @@ class BillRepository {
             product: true,
           },
         },
+        exchange: true,
       },
     });
   }
@@ -67,6 +70,7 @@ class BillRepository {
             product: true,
           },
         },
+        exchange: true,
       },
     });
   }
@@ -82,6 +86,7 @@ class BillRepository {
             product: true,
           },
         },
+        exchange: true,
       },
     });
   }
