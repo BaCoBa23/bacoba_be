@@ -56,7 +56,8 @@ class HistoryProviderController {
 
   create = async (req, res) => {
     try {
-      const errors = validateCreateHistoryProvider(req.body);
+      const data = req.body || {};
+      const errors = validateCreateHistoryProvider(data);
 
       if (Object.keys(errors).length > 0) {
         return res.error({
@@ -66,7 +67,7 @@ class HistoryProviderController {
         });
       }
 
-      const history = await historyProviderService.createHistory(req.body);
+      const history = await historyProviderService.createHistory(data);
 
       return res.success({
         message: SUCCESS_MESSAGES.HISTORY_PROVIDER_CREATE_SUCCESSFUL,
@@ -88,7 +89,8 @@ class HistoryProviderController {
   update = async (req, res) => {
     try {
       const { id } = req.params;
-      const errors = validateUpdateHistoryProvider(req.body);
+      const data = req.body || {};
+      const errors = validateUpdateHistoryProvider(data);
 
       if (Object.keys(errors).length > 0) {
         return res.error({
@@ -98,7 +100,7 @@ class HistoryProviderController {
         });
       }
 
-      const history = await historyProviderService.updateHistory(parseInt(id, 10), req.body);
+      const history = await historyProviderService.updateHistory(parseInt(id, 10), data);
 
       if (!history) {
         return res.error({

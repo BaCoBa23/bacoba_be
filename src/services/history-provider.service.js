@@ -26,24 +26,36 @@ class HistoryProviderService {
   }
 
   async createHistory(data) {
+    const paidAmount = data.paidAmount !== undefined && data.paidAmount !== null ? parseFloat(data.paidAmount) : 0;
+    const providerId = parseInt(data.providerId, 10);
+    const status = data.status || (paidAmount === 0 ? "pending" : "completed");
+    
     const historyData = {
-      providerId: parseInt(data.providerId, 10),
-      paidAmount: parseFloat(data.paidAmount),
+      providerId,
+      paidAmount,
       description: data.description || null,
-      status: data.status || "active",
+      status,
     };
 
-    return await historyProviderRepo.create(historyData);
+    return await historyProviderRepo.createWithTransaction(historyData, providerId);
   }
 
   async updateHistory(id, data) {
+    const history = await historyProviderRepo.findById(id);
+
+    if (!history) return null;
+
     const updateData = {};
 
-    if (data.paidAmount !== undefined) updateData.paidAmount = parseFloat(data.paidAmount);
+    if (data.paidAmount !== undefined) {
+      updateData.paidAmount = parseFloat(data.paidAmount);
+    }
     if (data.description !== undefined) updateData.description = data.description;
-    if (data.status !== undefined) updateData.status = data.status;
+    if (data.status !== undefined) {
+      updateData.status = data.status;
+    }
 
-    return await historyProviderRepo.update(id, updateData);
+    return await historyProviderRepo.updateWithTransaction(id, updateData, history);
   }
 
   async deleteHistory(id) {

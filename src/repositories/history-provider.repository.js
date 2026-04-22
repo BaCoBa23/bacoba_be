@@ -67,6 +67,85 @@ class HistoryProviderRepository {
       where: { id },
     });
   }
+
+  async createWithTransaction(historyData, providerId) {
+    return await prisma.$transaction(async (tx) => {
+      // Create history
+      const history = await tx.historyProvider.create({
+        data: historyData,
+        include: {
+          provider: true,
+        },
+      });
+
+      // Cập nhật debtTotal nếu đã thanh toán
+      if (historyData.status === "completed" && historyData.paidAmount > 0) {
+        const provider = await tx.provider.findUnique({
+          where: { id: providerId },
+        });
+
+        if (provider) {
+          const newDebtTotal = Math.max(0, provider.debtTotal - historyData.paidAmount);
+          await tx.provider.update({
+            where: { id: providerId },
+            data: { debtTotal: newDebtTotal },
+          });
+        }
+      }
+
+      return history;
+    });
+  }
+
+  async updateWithTransaction(id, updateData, historyBefore) {
+    return await prisma.$transaction(async (tx) => {
+      // Update history
+      const updatedHistory = await tx.historyProvider.update({
+        where: { id },
+        data: updateData,
+        include: {
+          provider: true,
+        },
+      });
+
+      // Cập nhật debtTotal nếu thay đổi status hoặc paidAmount
+      const provider = await tx.provider.findUnique({
+        where: { id: historyBefore.providerId },
+      });
+
+      if (provider) {
+        const oldPaidAmount = historyBefore.paidAmount;
+        const oldStatus = historyBefore.status;
+        const newPaidAmount = updateData.paidAmount !== undefined ? updateData.paidAmount : oldPaidAmount;
+        const newStatus = updateData.status !== undefined ? updateData.status : oldStatus;
+        
+        let newDebtTotal = provider.debtTotal;
+
+        // Nếu chuyển từ pending sang completed
+        if (oldStatus === "pending" && newStatus === "completed") {
+          newDebtTotal = Math.max(0, provider.debtTotal - newPaidAmount);
+        }
+        // Nếu chuyển từ completed sang pending
+        else if (oldStatus === "completed" && newStatus === "pending") {
+          newDebtTotal = provider.debtTotal + oldPaidAmount;
+        }
+        // Nếu update paidAmount khi đã completed
+        else if (oldStatus === "completed" && newStatus === "completed" && newPaidAmount !== oldPaidAmount) {
+          const diff = newPaidAmount - oldPaidAmount;
+          newDebtTotal = Math.max(0, provider.debtTotal - diff);
+        }
+
+        if (newDebtTotal !== provider.debtTotal) {
+          await tx.provider.update({
+            where: { id: historyBefore.providerId },
+            data: { debtTotal: newDebtTotal },
+          });
+        }
+      }
+
+      return updatedHistory;
+    });
+  }
 }
 
 module.exports = new HistoryProviderRepository();

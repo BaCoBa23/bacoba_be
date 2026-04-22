@@ -71,6 +71,8 @@ const SUCCESS_MESSAGES = {
   RECEIVED_NOTE_DELETE_SUCCESSFUL: "Xóa phiếu nhập kho thành công",
 
   // Bill Product
+  BILL_PRODUCT_LIST_SUCCESSFUL: "Lấy danh sách sản phẩm hoá đơn thành công",
+  BILL_PRODUCT_DETAIL_SUCCESSFUL: "Lấy chi tiết sản phẩm hoá đơn thành công",
   BILL_PRODUCT_BY_BILL_LIST_SUCCESSFUL: "Lấy danh sách sản phẩm của hoá đơn thành công",
   BILL_PRODUCT_CREATE_SUCCESSFUL: "Thêm sản phẩm vào hoá đơn thành công",
   BILL_PRODUCT_UPDATE_SUCCESSFUL: "Cập nhật sản phẩm hóa đơn thành công",
