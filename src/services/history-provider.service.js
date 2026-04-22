@@ -1,4 +1,5 @@
 const historyProviderRepo = require("../repositories/history-provider.repository");
+const providerRepo = require("../repositories/provider.repository");
 
 class HistoryProviderService {
   async getHistories(query) {
@@ -26,24 +27,79 @@ class HistoryProviderService {
   }
 
   async createHistory(data) {
+    const paidAmount = data.paidAmount !== undefined && data.paidAmount !== null ? parseFloat(data.paidAmount) : 0;
+    const providerId = parseInt(data.providerId, 10);
+    const status = data.status || (paidAmount === 0 ? "pending" : "completed");
+    
     const historyData = {
-      providerId: parseInt(data.providerId, 10),
-      paidAmount: parseFloat(data.paidAmount),
+      providerId,
+      paidAmount,
       description: data.description || null,
-      status: data.status || "active",
+      status,
     };
 
-    return await historyProviderRepo.create(historyData);
+    const history = await historyProviderRepo.create(historyData);
+
+    // Cập nhật debtTotal nếu đã thanh toán
+    if (status === "completed" && paidAmount > 0) {
+      const provider = await providerRepo.findById(providerId);
+      if (provider) {
+        const newDebtTotal = Math.max(0, provider.debtTotal - paidAmount);
+        await providerRepo.update(providerId, { debtTotal: newDebtTotal });
+      }
+    }
+
+    return history;
   }
 
   async updateHistory(id, data) {
     const updateData = {};
+    const history = await historyProviderRepo.findById(id);
 
-    if (data.paidAmount !== undefined) updateData.paidAmount = parseFloat(data.paidAmount);
+    if (!history) return null;
+
+    const oldPaidAmount = history.paidAmount;
+    const oldStatus = history.status;
+    let newPaidAmount = oldPaidAmount;
+    let newStatus = oldStatus;
+
+    if (data.paidAmount !== undefined) {
+      newPaidAmount = parseFloat(data.paidAmount);
+      updateData.paidAmount = newPaidAmount;
+    }
     if (data.description !== undefined) updateData.description = data.description;
-    if (data.status !== undefined) updateData.status = data.status;
+    if (data.status !== undefined) {
+      newStatus = data.status;
+      updateData.status = newStatus;
+    }
 
-    return await historyProviderRepo.update(id, updateData);
+    const updatedHistory = await historyProviderRepo.update(id, updateData);
+
+    // Cập nhật debtTotal nếu thay đổi status hoặc paidAmount
+    const provider = await providerRepo.findById(history.providerId);
+    if (provider) {
+      let newDebtTotal = provider.debtTotal;
+
+      // Nếu chuyển từ pending sang completed
+      if (oldStatus === "pending" && newStatus === "completed") {
+        newDebtTotal = Math.max(0, provider.debtTotal - newPaidAmount);
+      }
+      // Nếu chuyển từ completed sang pending
+      else if (oldStatus === "completed" && newStatus === "pending") {
+        newDebtTotal = provider.debtTotal + oldPaidAmount;
+      }
+      // Nếu update paidAmount khi đã completed
+      else if (oldStatus === "completed" && newStatus === "completed" && newPaidAmount !== oldPaidAmount) {
+        const diff = newPaidAmount - oldPaidAmount;
+        newDebtTotal = Math.max(0, provider.debtTotal - diff);
+      }
+
+      if (newDebtTotal !== provider.debtTotal) {
+        await providerRepo.update(history.providerId, { debtTotal: newDebtTotal });
+      }
+    }
+
+    return updatedHistory;
   }
 
   async deleteHistory(id) {
