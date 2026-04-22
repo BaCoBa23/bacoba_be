@@ -1,7 +1,7 @@
 const billRepo = require("../repositories/bill.repository");
 const billProductRepo = require("../repositories/bill-product.repository");
 const { buildPagination, buildMeta } = require("../utils");
-const { CommonStatus } = require("../enums/status.enum");
+const { CommonStatus, BillStatus } = require("../enums/status.enum");
 
 // Format bill data to match mock structure
 const formatBill = (bill) => {
@@ -16,7 +16,7 @@ const formatBill = (bill) => {
     : [];
 
   return {
-    id: `BILL-${year}-${paddedId}`, // Format: BILL-2026-001
+    id: bill.id,
     exchange: bill.exchange || null,
     name: bill.name,
     customerName: bill.customerName,
@@ -94,7 +94,7 @@ class BillService {
       phoneNumber: data.phoneNumber || null,
       discount: parseFloat(data.discount) || 0,
       total: parseFloat(data.total),
-      status: data.status || "pending",
+      status: data.status || BillStatus.PENDING,
       exchangeId: data.exchangeId ? parseInt(data.exchangeId, 10) : null,
     };
 
