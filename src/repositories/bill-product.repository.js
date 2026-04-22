@@ -70,9 +70,21 @@ class BillProductRepository {
     });
   }
 
-  async update(id, data) {
+  async update(where, data) {
+    // First find the record by billId and productId
+    const billProduct = await prisma.billProduct.findFirst({
+      where: {
+        billId: where.billId,
+        productId: where.productId,
+      },
+    });
+
+    if (!billProduct) {
+      return null;
+    }
+
     return await prisma.billProduct.update({
-      where: { id },
+      where: { id: billProduct.id },
       data,
       include: {
         bill: true,
@@ -81,10 +93,22 @@ class BillProductRepository {
     });
   }
 
-  async delete(id) {
+  async delete(where) {
+    // First find the record by billId and productId
+    const billProduct = await prisma.billProduct.findFirst({
+      where: {
+        billId: where.billId,
+        productId: where.productId,
+      },
+    });
+
+    if (!billProduct) {
+      return null;
+    }
+
     // Soft delete - update status to DELETED
     return await prisma.billProduct.update({
-      where: { id },
+      where: { id: billProduct.id },
       data: { status: CommonStatus.DELETED },
       include: {
         bill: true,

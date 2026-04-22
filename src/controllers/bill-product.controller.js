@@ -22,7 +22,11 @@ class BillProductController {
   create = async (req, res) => {
     try {
       const { id } = req.params;
-      const errors = validateCreateBillProduct(req.body);
+      const dataWithBillId = {
+        ...req.body,
+        billId: id,
+      };
+      const errors = validateCreateBillProduct(dataWithBillId);
 
       if (Object.keys(errors).length > 0) {
         return res.error({
@@ -32,10 +36,7 @@ class BillProductController {
         });
       }
 
-      const billProduct = await billProductService.createBillProduct({
-        ...req.body,
-        billId: id,
-      });
+      const billProduct = await billProductService.createBillProduct(dataWithBillId);
 
       return res.success({
         message: SUCCESS_MESSAGES.BILL_PRODUCT_CREATE_SUCCESSFUL,

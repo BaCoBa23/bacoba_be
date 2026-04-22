@@ -50,18 +50,24 @@ class BillProductService {
     return await billProductRepo.create(billProductData);
   }
 
-  async updateBillProduct(id, data) {
+  async updateBillProduct(billId, productId, data) {
     const updateData = {};
 
     if (data.quantity !== undefined) updateData.quantity = parseInt(data.quantity, 10);
     if (data.salePrice !== undefined) updateData.salePrice = parseFloat(data.salePrice);
     if (data.total !== undefined) updateData.total = parseFloat(data.total);
 
-    return await billProductRepo.update(id, updateData);
+    return await billProductRepo.update({
+      billId: parseInt(billId, 10),
+      productId: productId,
+    }, updateData);
   }
 
-  async deleteBillProduct(id) {
-    return await billProductRepo.delete(id);
+  async deleteBillProduct(billId, productId) {
+    return await billProductRepo.delete({
+      billId: parseInt(billId, 10),
+      productId: productId,
+    });
   }
 }
 
