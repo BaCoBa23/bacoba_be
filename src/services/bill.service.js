@@ -6,14 +6,12 @@ const { CommonStatus, BillStatus } = require("../enums/status.enum");
 // Format bill data to match mock structure
 const formatBill = (bill) => {
   if (!bill) return null;
-  
-  const year = new Date(bill.createdAt).getFullYear();
-  const paddedId = String(bill.id).padStart(3, '0');
-  
+
   // Filter billProducts - only include valid ones with product
-  const validBillProducts = (bill.billProducts && Array.isArray(bill.billProducts))
-    ? bill.billProducts.filter(bp => bp && bp.product) // Only include if product exists
-    : [];
+  const validBillProducts =
+    bill.billProducts && Array.isArray(bill.billProducts)
+      ? bill.billProducts.filter((bp) => bp && bp.product) // Only include if product exists
+      : [];
 
   return {
     id: bill.id,
@@ -27,11 +25,9 @@ const formatBill = (bill) => {
     createdAt: bill.createdAt,
     updatedAt: bill.updatedAt,
     billProducts: validBillProducts.map((bp) => {
-      const bpPaddedId = String(bp.id).padStart(3, '0');
       return {
-        id: `BP-${bpPaddedId}`, // Format: BP-001
         productId: bp.productId,
-        productName: bp.product?.name || bp.productId, // Fallback to productId
+        productName: bp.product?.name || bp.productId,
         quantity: bp.quantity,
         salePrice: bp.salePrice,
         total: bp.total,
@@ -74,16 +70,10 @@ class BillService {
 
   async getBillById(id) {
     const bill = await billRepo.findById(id);
-    
+
     if (!bill) {
       return null;
     }
-
-    // Check if bill is soft deleted
-    if (bill.status === CommonStatus.DELETED) {
-      return null;
-    }
-
     return formatBill(bill);
   }
 
@@ -99,7 +89,11 @@ class BillService {
     };
 
     // Nếu có billProducts, tạo bill với transaction
-    if (data.billProducts && Array.isArray(data.billProducts) && data.billProducts.length > 0) {
+    if (
+      data.billProducts &&
+      Array.isArray(data.billProducts) &&
+      data.billProducts.length > 0
+    ) {
       const billProductsData = data.billProducts.map((bp) => ({
         productId: bp.productId,
         quantity: parseInt(bp.quantity, 10),
@@ -107,7 +101,10 @@ class BillService {
         total: parseFloat(bp.total),
       }));
 
-      const bill = await billRepo.createWithTransaction(billData, billProductsData);
+      const bill = await billRepo.createWithTransaction(
+        billData,
+        billProductsData,
+      );
       return formatBill(bill);
     }
 
@@ -120,12 +117,18 @@ class BillService {
     const updateData = {};
 
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.customerName !== undefined) updateData.customerName = data.customerName;
-    if (data.phoneNumber !== undefined) updateData.phoneNumber = data.phoneNumber;
-    if (data.discount !== undefined) updateData.discount = parseFloat(data.discount);
+    if (data.customerName !== undefined)
+      updateData.customerName = data.customerName;
+    if (data.phoneNumber !== undefined)
+      updateData.phoneNumber = data.phoneNumber;
+    if (data.discount !== undefined)
+      updateData.discount = parseFloat(data.discount);
     if (data.total !== undefined) updateData.total = parseFloat(data.total);
     if (data.status !== undefined) updateData.status = data.status;
-    if (data.exchangeId !== undefined) updateData.exchangeId = data.exchangeId ? parseInt(data.exchangeId, 10) : null;
+    if (data.exchangeId !== undefined)
+      updateData.exchangeId = data.exchangeId
+        ? parseInt(data.exchangeId, 10)
+        : null;
 
     // Nếu có billProducts, update với transaction
     if (data.billProducts && Array.isArray(data.billProducts)) {
@@ -136,7 +139,11 @@ class BillService {
         total: parseFloat(bp.total),
       }));
 
-      const bill = await billRepo.updateWithTransaction(id, updateData, billProductsData);
+      const bill = await billRepo.updateWithTransaction(
+        id,
+        updateData,
+        billProductsData,
+      );
       return formatBill(bill);
     }
 

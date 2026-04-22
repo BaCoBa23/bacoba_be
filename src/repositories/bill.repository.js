@@ -3,16 +3,11 @@ const { CommonStatus } = require("../enums/status.enum");
 
 class BillRepository {
   async findAndCount({ skip, take, where, orderBy }) {
-    const whereWithStatus = {
-      ...where,
-      status: { not: CommonStatus.DELETED },
-    };
-
     const [data, totalItems] = await Promise.all([
       prisma.bill.findMany({
         skip,
         take,
-        where: whereWithStatus,
+        where,
         orderBy,
         include: {
           billProducts: {
@@ -23,7 +18,7 @@ class BillRepository {
           exchange: true,
         },
       }),
-      prisma.bill.count({ where: whereWithStatus }),
+      prisma.bill.count({ where: where }),
     ]);
 
     return { data, totalItems };
@@ -34,9 +29,6 @@ class BillRepository {
       where: { id },
       include: {
         billProducts: {
-          where: {
-            status: { not: CommonStatus.DELETED },
-          },
           include: {
             product: true,
           },
@@ -96,7 +88,6 @@ class BillRepository {
 
   async createWithTransaction(billData, billProductsData) {
     return await prisma.$transaction(async (tx) => {
-      // Create bill with billProducts
       const bill = await tx.bill.create({
         data: {
           ...billData,
@@ -114,9 +105,7 @@ class BillRepository {
         },
       });
 
-      // Update kho sản phẩm
       for (const bp of billProductsData) {
-        // Giảm quantity sản phẩm
         const updatedProduct = await tx.product.update({
           where: { id: bp.productId },
           data: {
