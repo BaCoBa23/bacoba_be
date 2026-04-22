@@ -3,6 +3,51 @@ const { validateCreateBillProduct, validateUpdateBillProduct } = require("../val
 const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class BillProductController {
+  getList = async (req, res) => {
+    try {
+      const result = await billProductService.getBillProducts(req.query);
+
+      return res.success({
+        message: SUCCESS_MESSAGES.BILL_PRODUCT_LIST_SUCCESSFUL,
+        data: result.data,
+        meta: result.meta,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
+
+  getById = async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      if (!id || isNaN(parseInt(id, 10))) {
+        return res.error({
+          message: "ID sản phẩm hoá đơn không hợp lệ",
+          status: 400,
+        });
+      }
+
+      const billProduct = await billProductService.getBillProductById(parseInt(id, 10));
+
+      if (!billProduct) {
+        return res.error({
+          message: ERROR_MESSAGES.BILL_PRODUCT_NOT_FOUND,
+          status: 404,
+        });
+      }
+
+      return res.success({
+        message: SUCCESS_MESSAGES.BILL_PRODUCT_DETAIL_SUCCESSFUL,
+        data: billProduct,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
+
   getByBillId = async (req, res) => {
     try {
       const { id } = req.params;
