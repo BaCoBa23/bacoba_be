@@ -17,4 +17,10 @@ const ReceiveNoteStatus = {
   CANCELED: "canceled",
 };
 
-module.exports = { ProductStatus, CommonStatus, ReceiveNoteStatus };
+const BillStatus = {
+  COMPLETED: "completed",
+  RETURNED: "returned",
+  EXCHANGED: "exchanged",
+};
+
+module.exports = { ProductStatus, CommonStatus, ReceiveNoteStatus, BillStatus };
