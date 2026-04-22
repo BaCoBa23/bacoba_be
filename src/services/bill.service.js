@@ -16,7 +16,7 @@ const formatBill = (bill) => {
     : [];
 
   return {
-    id: `BILL-${year}-${paddedId}`, // Format: BILL-2026-001
+    id: bill.id,
     exchange: bill.exchange || null,
     name: bill.name,
     customerName: bill.customerName,
