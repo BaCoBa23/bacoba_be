@@ -5,12 +5,11 @@ const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 class BillProductController {
   getList = async (req, res) => {
     try {
-      const result = await billProductService.getBillProducts(req.query);
+      const data = await billProductService.getBillProducts(req.query);
 
       return res.success({
         message: SUCCESS_MESSAGES.BILL_PRODUCT_LIST_SUCCESSFUL,
-        data: result.data,
-        meta: result.meta,
+        data,
       });
     } catch (error) {
       console.error(error);
@@ -51,12 +50,11 @@ class BillProductController {
   getByBillId = async (req, res) => {
     try {
       const { id } = req.params;
-      const result = await billProductService.getProductsByBillId(id, req.query);
+      const data = await billProductService.getProductsByBillId(id, req.query);
 
       return res.success({
         message: SUCCESS_MESSAGES.BILL_PRODUCT_BY_BILL_LIST_SUCCESSFUL,
-        data: result.data,
-        meta: result.meta,
+        data,
       });
     } catch (error) {
       console.error(error);

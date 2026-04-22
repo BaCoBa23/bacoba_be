@@ -1,28 +1,19 @@
 const billProductRepo = require("../repositories/bill-product.repository");
-const { buildPagination, buildMeta } = require("../utils");
 const prisma = require("../config/prisma.config");
 
 class BillProductService {
   async getBillProducts(query) {
-    const { page, pageSize, skip, take, orderBy } = buildPagination(query);
-
     const where = {};
     const { billId, productId } = query;
 
     if (billId) where.billId = parseInt(billId, 10);
     if (productId) where.productId = productId;
 
-    const { data, totalItems } = await billProductRepo.findAndCount({
-      skip,
-      take,
+    const data = await billProductRepo.find({
       where,
-      orderBy,
     });
 
-    return {
-      data,
-      meta: buildMeta(totalItems, page, pageSize),
-    };
+    return data;
   }
 
   async getBillProductById(id) {
@@ -30,13 +21,9 @@ class BillProductService {
   }
 
   async getProductsByBillId(billId, query) {
-    const { page, pageSize, skip, take } = buildPagination(query);
-    const { data, totalItems } = await billProductRepo.findByBillId(parseInt(billId, 10), skip, take);
+    const data = await billProductRepo.findByBillId(parseInt(billId, 10));
 
-    return {
-      data,
-      meta: buildMeta(totalItems, page, pageSize),
-    };
+    return data;
   }
 
   async createBillProduct(data) {
