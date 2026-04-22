@@ -9,8 +9,10 @@ class BillProductService {
     if (billId) where.billId = parseInt(billId, 10);
     if (productId) where.productId = productId;
 
-    const data = await billProductRepo.find({
+    const { data } = await billProductRepo.findAndCount({
       where,
+      skip: 0,
+      take: 999,
     });
 
     return data;
