@@ -1,5 +1,8 @@
 const historyProviderService = require("../services/history-provider.service");
-const { validateCreateHistoryProvider, validateUpdateHistoryProvider } = require("../validations/history-provider.validation");
+const {
+  validateCreateHistoryProvider,
+  validateUpdateHistoryProvider,
+} = require("../validations/history-provider.validation");
 const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
 class HistoryProviderController {
@@ -20,7 +23,9 @@ class HistoryProviderController {
   getById = async (req, res) => {
     try {
       const { id } = req.params;
-      const history = await historyProviderService.getHistoryById(parseInt(id, 10));
+      const history = await historyProviderService.getHistoryById(
+        parseInt(id, 10),
+      );
 
       if (!history) {
         return res.error({
@@ -42,7 +47,10 @@ class HistoryProviderController {
   getByProviderId = async (req, res) => {
     try {
       const { providerId } = req.params;
-      const result = await historyProviderService.getHistoriesByProviderId(providerId, req.query);
+      const result = await historyProviderService.getHistoriesByProviderId(
+        providerId,
+        req.query,
+      );
 
       return res.success({
         message: SUCCESS_MESSAGES.HISTORY_PROVIDER_BY_PROVIDER_LIST_SUCCESSFUL,
@@ -89,9 +97,7 @@ class HistoryProviderController {
   update = async (req, res) => {
     try {
       const { id } = req.params;
-      const data = req.body || {};
-      const errors = validateUpdateHistoryProvider(data);
-
+      const errors = validateUpdateHistoryProvider(req.body);
       if (Object.keys(errors).length > 0) {
         return res.error({
           message: MESSAGES.VALIDATION_ERROR,
@@ -100,7 +106,10 @@ class HistoryProviderController {
         });
       }
 
-      const history = await historyProviderService.updateHistory(parseInt(id, 10), data);
+      const history = await historyProviderService.updateHistory(
+        parseInt(id, 10),
+        req.body,
+      );
 
       if (!history) {
         return res.error({
@@ -115,6 +124,12 @@ class HistoryProviderController {
       });
     } catch (error) {
       console.error(error);
+      if (error.code === "P2025") {
+        return res.error({
+          message: "Nhà cung cấp không tồn tại",
+          status: 400,
+        });
+      }
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
     }
   };
@@ -122,19 +137,22 @@ class HistoryProviderController {
   delete = async (req, res) => {
     try {
       const { id } = req.params;
-      await historyProviderService.deleteHistory(parseInt(id, 10));
-
-      return res.success({
-        message: SUCCESS_MESSAGES.HISTORY_PROVIDER_DELETE_SUCCESSFUL,
-      });
-    } catch (error) {
-      console.error(error);
-      if (error.code === "P2025") {
+      const history = await historyProviderService.deleteHistory(
+        parseInt(id, 10),
+      );
+      if (!history) {
         return res.error({
           message: ERROR_MESSAGES.HISTORY_PROVIDER_NOT_FOUND,
           status: 404,
         });
       }
+
+      return res.success({
+        message: SUCCESS_MESSAGES.HISTORY_PROVIDER_DELETE_SUCCESSFUL,
+        data: history,
+      });
+    } catch (error) {
+      console.error(error);
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
     }
   };

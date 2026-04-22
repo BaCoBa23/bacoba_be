@@ -14,7 +14,7 @@ const CommonStatus = {
 const ReceiveNoteStatus = {
   DRAFT: "draft",
   CONFIRM: "confirm",
-  CANCELED: "canceled",
+  CANCELLED: "cancelled",
 };
 
 const BillStatus = {
@@ -23,4 +23,15 @@ const BillStatus = {
   EXCHANGED: "exchanged",
 };
 
-module.exports = { ProductStatus, CommonStatus, ReceiveNoteStatus, BillStatus };
+const HistoryProviderStatus = {
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+};
+
+module.exports = {
+  ProductStatus,
+  CommonStatus,
+  ReceiveNoteStatus,
+  BillStatus,
+  HistoryProviderStatus,
+};

@@ -1,4 +1,5 @@
 const historyProviderRepo = require("../repositories/history-provider.repository");
+const { HistoryProviderStatus } = require("../enums/status.enum");
 
 class HistoryProviderService {
   async getHistories(query) {
@@ -20,46 +21,59 @@ class HistoryProviderService {
   }
 
   async getHistoriesByProviderId(providerId, query) {
-    const data = await historyProviderRepo.findByProviderId(parseInt(providerId, 10));
+    const data = await historyProviderRepo.findByProviderId(
+      parseInt(providerId, 10),
+    );
 
     return data;
   }
 
   async createHistory(data) {
-    const paidAmount = data.paidAmount !== undefined && data.paidAmount !== null ? parseFloat(data.paidAmount) : 0;
+    const paidAmount =
+      data.paidAmount !== undefined && data.paidAmount !== null
+        ? parseFloat(data.paidAmount)
+        : 0;
     const providerId = parseInt(data.providerId, 10);
-    const status = data.status || (paidAmount === 0 ? "pending" : "completed");
-    
     const historyData = {
       providerId,
       paidAmount,
       description: data.description || null,
-      status,
+      status: HistoryProviderStatus.COMPLETED,
     };
 
-    return await historyProviderRepo.createWithTransaction(historyData, providerId);
+    return await historyProviderRepo.createWithTransaction(
+      historyData,
+      providerId,
+    );
   }
 
   async updateHistory(id, data) {
-    const history = await historyProviderRepo.findById(id);
-
-    if (!history) return null;
+    const oldHistory = await historyProviderRepo.findById(id);
+    if (!oldHistory) return null;
 
     const updateData = {};
-
-    if (data.paidAmount !== undefined) {
+    if (data.providerId !== undefined)
+      updateData.providerId = parseInt(data.providerId, 10);
+    if (data.paidAmount !== undefined)
       updateData.paidAmount = parseFloat(data.paidAmount);
-    }
-    if (data.description !== undefined) updateData.description = data.description;
-    if (data.status !== undefined) {
-      updateData.status = data.status;
-    }
+    if (data.description !== undefined)
+      updateData.description = data.description;
 
-    return await historyProviderRepo.updateWithTransaction(id, updateData, history);
+    return await historyProviderRepo.updateWithTransaction(
+      id,
+      oldHistory,
+      updateData,
+    );
   }
 
   async deleteHistory(id) {
-    return await historyProviderRepo.delete(id);
+    const oldHistory = await historyProviderRepo.findById(id);
+    if (!oldHistory) return null;
+
+    if (oldHistory.status === HistoryProviderStatus.CANCELLED) {
+      return oldHistory;
+    }
+    return await historyProviderRepo.cancelWithTransaction(id, oldHistory);
   }
 }
 
