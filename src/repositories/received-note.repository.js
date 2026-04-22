@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma.config");
+const { ReceiveNoteStatus } = require("../enums/status.enum");
 
 class ReceivedNoteRepository {
   async findAndCount({ skip, take, where, orderBy }) {
@@ -225,6 +226,79 @@ class ReceivedNoteRepository {
           },
         },
       },
+    });
+  }
+
+  async updateWithTransaction(id, oldNote, updateData, newProductsData) {
+    return await prisma.$transaction(async (tx) => {
+      if (oldNote.status === ReceiveNoteStatus.CONFIRM) {
+        await tx.provider.update({
+          where: { id: oldNote.providerId },
+          data: {
+            total: { decrement: oldNote.total },
+            debtTotal: { decrement: oldNote.debtMoney },
+          },
+        });
+
+        for (const rp of oldNote.receivedProducts) {
+          const updatedProduct = await tx.product.update({
+            where: { id: rp.productId },
+            data: { quantity: { decrement: rp.addQuantity } },
+          });
+
+          if (updatedProduct.parentId) {
+            await tx.product.update({
+              where: { id: updatedProduct.parentId },
+              data: { quantity: { decrement: rp.addQuantity } },
+            });
+          }
+        }
+      }
+
+      const noteUpdateQuery = {
+        where: { id },
+        data: { ...updateData },
+        include: {
+          provider: true,
+          receivedProducts: {
+            include: { product: true },
+          },
+        },
+      };
+
+      if (newProductsData) {
+        noteUpdateQuery.data.receivedProducts = {
+          deleteMany: {},
+          create: newProductsData,
+        };
+      }
+
+      const updatedNote = await tx.receivedNote.update(noteUpdateQuery);
+      if (updatedNote.status === ReceiveNoteStatus.CONFIRM) {
+        await tx.provider.update({
+          where: { id: updatedNote.providerId },
+          data: {
+            total: { increment: updatedNote.total },
+            debtTotal: { increment: updatedNote.debtMoney },
+          },
+        });
+
+        for (const rp of updatedNote.receivedProducts) {
+          const prod = await tx.product.update({
+            where: { id: rp.productId },
+            data: { quantity: { increment: rp.addQuantity } },
+          });
+
+          if (prod.parentId) {
+            await tx.product.update({
+              where: { id: prod.parentId },
+              data: { quantity: { increment: rp.addQuantity } },
+            });
+          }
+        }
+      }
+
+      return updatedNote;
     });
   }
 

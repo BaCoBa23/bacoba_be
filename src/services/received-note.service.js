@@ -64,7 +64,7 @@ class ReceivedNoteService {
     const { data, totalItems } = await receivedNoteRepo.findByProviderId(
       parseInt(providerId, 10),
       skip,
-      take
+      take,
     );
 
     return {
@@ -97,7 +97,7 @@ class ReceivedNoteService {
     return await receivedNoteRepo.createWithTransaction(
       receivedNoteData,
       receivedProductsData,
-      isConfirm
+      isConfirm,
     );
   }
 
@@ -106,7 +106,7 @@ class ReceivedNoteService {
     const existingNote = await receivedNoteRepo.findById(id);
 
     if (!existingNote) throw new Error("NOTE_NOT_FOUND");
-    
+
     if (existingNote.status !== "draft") {
       throw new Error("NOTE_NOT_IN_DRAFT_STATE");
     }
@@ -126,8 +126,12 @@ class ReceivedNoteService {
   }
 
   async updateReceivedNote(id, data) {
-    const updateData = {};
+    const oldNote = await receivedNoteRepo.findById(id);
+    if (!oldNote) return null;
 
+    const updateData = {};
+    if (data.providerId !== undefined)
+      updateData.providerId = parseInt(data.providerId, 10);
     if (data.phoneNumber !== undefined)
       updateData.phoneNumber = data.phoneNumber;
     if (data.discount !== undefined)
@@ -141,37 +145,23 @@ class ReceivedNoteService {
       updateData.description = data.description;
     if (data.status !== undefined) updateData.status = data.status;
 
-    // Nếu có receivedProducts, delete old ones và create new ones
+    let newProductsData = null;
     if (data.receivedProducts && Array.isArray(data.receivedProducts)) {
-      const receivedProductsData = data.receivedProducts.map((rp) => ({
+      newProductsData = data.receivedProducts.map((rp) => ({
         productId: rp.productId,
         addQuantity: parseInt(rp.addQuantity, 10),
         discount: parseFloat(rp.discount) || 0,
         description: rp.description || null,
         total: parseFloat(rp.total),
       }));
-
-      return await prisma.receivedNote.update({
-        where: { id },
-        data: {
-          ...updateData,
-          receivedProducts: {
-            deleteMany: {}, // Delete tất cả receivedProducts cũ
-            create: receivedProductsData, // Tạo receivedProducts mới
-          },
-        },
-        include: {
-          receivedProducts: {
-            include: {
-              product: true,
-            },
-          },
-        },
-      });
     }
 
-    // Nếu không có receivedProducts, chỉ update receivedNote
-    return await receivedNoteRepo.update(id, updateData);
+    return await receivedNoteRepo.updateWithTransaction(
+      id,
+      oldNote,
+      updateData,
+      newProductsData,
+    );
   }
 
   async deleteReceivedNote(id) {

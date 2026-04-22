@@ -25,7 +25,7 @@ class ReceivedNoteController {
     try {
       const { id } = req.params;
       const receivedNote = await receivedNoteService.getReceivedNoteById(
-        parseInt(id, 10)
+        parseInt(id, 10),
       );
 
       if (!receivedNote) {
@@ -50,7 +50,7 @@ class ReceivedNoteController {
       const { providerId } = req.params;
       const result = await receivedNoteService.getReceivedNotesByProviderId(
         providerId,
-        req.query
+        req.query,
       );
 
       return res.success({
@@ -77,7 +77,7 @@ class ReceivedNoteController {
       }
 
       const receivedNote = await receivedNoteService.createReceivedNote(
-        req.body
+        req.body,
       );
 
       return res.success({
@@ -102,7 +102,7 @@ class ReceivedNoteController {
       const { id } = req.params; // Lấy ID từ URL
 
       const confirmedNote = await receivedNoteService.confirmNote(
-        parseInt(id, 10)
+        parseInt(id, 10),
       );
 
       return res.success({
@@ -115,11 +115,11 @@ class ReceivedNoteController {
       if (error.message === "NOTE_NOT_FOUND") {
         return res.error({ message: "Không tìm thấy phiếu nhập", status: 404 });
       }
-      
+
       if (error.message === "NOTE_NOT_IN_DRAFT_STATE") {
-        return res.error({ 
-          message: "Chỉ có thể xác nhận phiếu ở trạng thái tạm (Draft)", 
-          status: 400 
+        return res.error({
+          message: "Chỉ có thể xác nhận phiếu ở trạng thái tạm (Draft)",
+          status: 400,
         });
       }
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
@@ -140,7 +140,7 @@ class ReceivedNoteController {
       }
 
       const cancelledNote = await receivedNoteService.cancelReceivedNote(
-        parseInt(id, 10)
+        parseInt(id, 10),
       );
 
       return res.success({
@@ -167,6 +167,7 @@ class ReceivedNoteController {
       });
     }
   };
+
   update = async (req, res) => {
     try {
       const { id } = req.params;
@@ -182,7 +183,7 @@ class ReceivedNoteController {
 
       const receivedNote = await receivedNoteService.updateReceivedNote(
         parseInt(id, 10),
-        req.body
+        req.body,
       );
 
       if (!receivedNote) {
@@ -198,6 +199,12 @@ class ReceivedNoteController {
       });
     } catch (error) {
       console.error(error);
+      if (error.code === "P2025") {
+        return res.error({
+          message: "Nhà cung cấp hoặc Sản phẩm không tồn tại.",
+          status: 400,
+        });
+      }
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
     }
   };
