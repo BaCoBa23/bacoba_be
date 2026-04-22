@@ -34,6 +34,9 @@ class BillRepository {
       where: { id },
       include: {
         billProducts: {
+          where: {
+            status: { not: CommonStatus.DELETED },
+          },
           include: {
             product: true,
           },

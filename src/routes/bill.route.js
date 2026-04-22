@@ -6,7 +6,6 @@ const billProductController = require("../controllers/bill-product.controller");
 // Bill routes
 router.get("/", billController.getList);
 router.post("/", billController.create);
-router.get("/:billId", billController.getById);
 router.get("/:id", billController.getById);
 router.put("/:id", billController.update);
 router.delete("/:id", billController.delete);

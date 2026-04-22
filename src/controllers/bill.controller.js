@@ -21,6 +21,14 @@ class BillController {
   getById = async (req, res) => {
     try {
       const { id } = req.params;
+      
+      if (!id || isNaN(parseInt(id, 10))) {
+        return res.error({
+          message: "ID hoá đơn không hợp lệ",
+          status: 400,
+        });
+      }
+
       const bill = await billService.getBillById(parseInt(id, 10));
 
       if (!bill) {
@@ -35,14 +43,18 @@ class BillController {
         data: bill,
       });
     } catch (error) {
-      console.error(error);
-      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+      console.error("Error in getById:", error);
+      return res.error({ 
+        message: ERROR_MESSAGES.SERVER_ERROR,
+        error: error.message 
+      });
     }
   };
 
   create = async (req, res) => {
     try {
-      const errors = validateCreateBill(req.body);
+      const data = req.body || {};
+      const errors = validateCreateBill(data);
 
       if (Object.keys(errors).length > 0) {
         return res.error({
@@ -52,7 +64,7 @@ class BillController {
         });
       }
 
-      const bill = await billService.createBill(req.body);
+      const bill = await billService.createBill(data);
 
       return res.success({
         message: SUCCESS_MESSAGES.BILL_CREATE_SUCCESSFUL,
@@ -68,7 +80,8 @@ class BillController {
   update = async (req, res) => {
     try {
       const { id } = req.params;
-      const errors = validateUpdateBill(req.body);
+      const data = req.body || {};
+      const errors = validateUpdateBill(data);
 
       if (Object.keys(errors).length > 0) {
         return res.error({
@@ -78,7 +91,7 @@ class BillController {
         });
       }
 
-      const bill = await billService.updateBill(parseInt(id, 10), req.body);
+      const bill = await billService.updateBill(parseInt(id, 10), data);
 
       if (!bill) {
         return res.error({

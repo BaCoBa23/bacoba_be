@@ -1,5 +1,6 @@
 const billProductRepo = require("../repositories/bill-product.repository");
 const { buildPagination, buildMeta } = require("../utils");
+const prisma = require("../config/prisma.config");
 
 class BillProductService {
   async getBillProducts(query) {
@@ -47,7 +48,38 @@ class BillProductService {
       total: parseFloat(data.total),
     };
 
-    return await billProductRepo.create(billProductData);
+    // Tạo BillProduct
+    const billProduct = await billProductRepo.create(billProductData);
+
+    // Update kho: giảm quantity sản phẩm
+    await prisma.product.update({
+      where: { id: data.productId },
+      data: {
+        quantity: {
+          decrement: parseInt(data.quantity, 10),
+        },
+      },
+    });
+
+    // Update kho parent product (nếu có)
+    const product = await prisma.product.findUnique({
+      where: { id: data.productId },
+      select: { parentId: true },
+    });
+
+    if (product?.parentId) {
+      const totalVariantQuantity = await prisma.product.aggregate({
+        where: { parentId: product.parentId },
+        _sum: { quantity: true },
+      });
+
+      await prisma.product.update({
+        where: { id: product.parentId },
+        data: { quantity: totalVariantQuantity._sum.quantity || 0 },
+      });
+    }
+
+    return billProduct;
   }
 
   async updateBillProduct(billId, productId, data) {
@@ -64,10 +96,53 @@ class BillProductService {
   }
 
   async deleteBillProduct(billId, productId) {
-    return await billProductRepo.delete({
+    // Lấy quantity trước khi xóa
+    const billProduct = await prisma.billProduct.findFirst({
+      where: {
+        billId: parseInt(billId, 10),
+        productId: productId,
+      },
+    });
+
+    if (!billProduct) {
+      return null;
+    }
+
+    // Xóa BillProduct
+    await billProductRepo.delete({
       billId: parseInt(billId, 10),
       productId: productId,
     });
+
+    // Update kho: tăng lại quantity sản phẩm
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        quantity: {
+          increment: billProduct.quantity,
+        },
+      },
+    });
+
+    // Update kho parent product (nếu có)
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { parentId: true },
+    });
+
+    if (product?.parentId) {
+      const totalVariantQuantity = await prisma.product.aggregate({
+        where: { parentId: product.parentId },
+        _sum: { quantity: true },
+      });
+
+      await prisma.product.update({
+        where: { id: product.parentId },
+        data: { quantity: totalVariantQuantity._sum.quantity || 0 },
+      });
+    }
+
+    return billProduct;
   }
 }
 

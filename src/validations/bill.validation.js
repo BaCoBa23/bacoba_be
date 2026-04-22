@@ -3,6 +3,10 @@ const { ERROR_VALIDATIONS } = require("../constants");
 const validateCreateBill = (data) => {
   const errors = {};
 
+  if (!data) {
+    return errors;
+  }
+
   if (data.total === undefined || data.total === null || Number(data.total) < 0) {
     errors.total = ERROR_VALIDATIONS.BILL_TOTAL_REQUIRED_GTE0;
   }
@@ -38,6 +42,10 @@ const validateCreateBill = (data) => {
 
 const validateUpdateBill = (data) => {
   const errors = {};
+
+  if (!data) {
+    return errors;
+  }
 
   if (data.total !== undefined && (Number(data.total) < 0 || isNaN(Number(data.total)))) {
     errors.total = ERROR_VALIDATIONS.BILL_TOTAL_MUST_GTE0;
