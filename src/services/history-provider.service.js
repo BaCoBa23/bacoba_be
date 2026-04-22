@@ -1,5 +1,4 @@
 const historyProviderRepo = require("../repositories/history-provider.repository");
-const providerRepo = require("../repositories/provider.repository");
 
 class HistoryProviderService {
   async getHistories(query) {
@@ -38,68 +37,25 @@ class HistoryProviderService {
       status,
     };
 
-    const history = await historyProviderRepo.create(historyData);
-
-    // Cập nhật debtTotal nếu đã thanh toán
-    if (status === "completed" && paidAmount > 0) {
-      const provider = await providerRepo.findById(providerId);
-      if (provider) {
-        const newDebtTotal = Math.max(0, provider.debtTotal - paidAmount);
-        await providerRepo.update(providerId, { debtTotal: newDebtTotal });
-      }
-    }
-
-    return history;
+    return await historyProviderRepo.createWithTransaction(historyData, providerId);
   }
 
   async updateHistory(id, data) {
-    const updateData = {};
     const history = await historyProviderRepo.findById(id);
 
     if (!history) return null;
 
-    const oldPaidAmount = history.paidAmount;
-    const oldStatus = history.status;
-    let newPaidAmount = oldPaidAmount;
-    let newStatus = oldStatus;
+    const updateData = {};
 
     if (data.paidAmount !== undefined) {
-      newPaidAmount = parseFloat(data.paidAmount);
-      updateData.paidAmount = newPaidAmount;
+      updateData.paidAmount = parseFloat(data.paidAmount);
     }
     if (data.description !== undefined) updateData.description = data.description;
     if (data.status !== undefined) {
-      newStatus = data.status;
-      updateData.status = newStatus;
+      updateData.status = data.status;
     }
 
-    const updatedHistory = await historyProviderRepo.update(id, updateData);
-
-    // Cập nhật debtTotal nếu thay đổi status hoặc paidAmount
-    const provider = await providerRepo.findById(history.providerId);
-    if (provider) {
-      let newDebtTotal = provider.debtTotal;
-
-      // Nếu chuyển từ pending sang completed
-      if (oldStatus === "pending" && newStatus === "completed") {
-        newDebtTotal = Math.max(0, provider.debtTotal - newPaidAmount);
-      }
-      // Nếu chuyển từ completed sang pending
-      else if (oldStatus === "completed" && newStatus === "pending") {
-        newDebtTotal = provider.debtTotal + oldPaidAmount;
-      }
-      // Nếu update paidAmount khi đã completed
-      else if (oldStatus === "completed" && newStatus === "completed" && newPaidAmount !== oldPaidAmount) {
-        const diff = newPaidAmount - oldPaidAmount;
-        newDebtTotal = Math.max(0, provider.debtTotal - diff);
-      }
-
-      if (newDebtTotal !== provider.debtTotal) {
-        await providerRepo.update(history.providerId, { debtTotal: newDebtTotal });
-      }
-    }
-
-    return updatedHistory;
+    return await historyProviderRepo.updateWithTransaction(id, updateData, history);
   }
 
   async deleteHistory(id) {
