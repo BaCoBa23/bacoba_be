@@ -64,7 +64,7 @@ class ReceivedNoteService {
     const { data, totalItems } = await receivedNoteRepo.findByProviderId(
       parseInt(providerId, 10),
       skip,
-      take,
+      take
     );
 
     return {
@@ -97,8 +97,32 @@ class ReceivedNoteService {
     return await receivedNoteRepo.createWithTransaction(
       receivedNoteData,
       receivedProductsData,
-      isConfirm,
+      isConfirm
     );
+  }
+
+  async confirmNote(id) {
+    // 1. Kiểm tra phiếu có tồn tại và đang ở trạng thái DRAFT không
+    const existingNote = await receivedNoteRepo.findById(id);
+
+    if (!existingNote) throw new Error("NOTE_NOT_FOUND");
+    
+    if (existingNote.status !== "draft") {
+      throw new Error("NOTE_NOT_IN_DRAFT_STATE");
+    }
+
+    // 2. Gọi Repo để xử lý transaction
+    return await receivedNoteRepo.confirmWithTransaction(existingNote);
+  }
+
+  // receivedNoteService.js
+
+  async cancelReceivedNote(noteId) {
+    try {
+      return await receivedNoteRepo.cancelWithTransaction(noteId);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async updateReceivedNote(id, data) {

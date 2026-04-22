@@ -9,6 +9,8 @@ router.post("/", receivedNoteController.create);
 router.get("/provider/:providerId", receivedNoteController.getByProviderId);
 router.get("/:id", receivedNoteController.getById);
 router.put("/:id", receivedNoteController.update);
+router.put("/:id/cancelled", receivedNoteController.cancel);
+router.put("/:id/confirm", receivedNoteController.confirm);
 router.delete("/:id", receivedNoteController.delete);
 
 // Received Products - Nested routes
