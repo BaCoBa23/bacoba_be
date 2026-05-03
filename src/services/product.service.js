@@ -216,25 +216,32 @@ class ProductService {
 
     // Create each variant from combinations
     for (const combo of combinations) {
-      // Check if variant with same attributes already exists
-      const newAttributeIds = new Set(combo.map((attr) => parseInt(attr.id, 10)).sort());
+      // Check if variant with same attributes AND values already exists
       let isDuplicate = false;
 
       for (const variant of variants) {
         if (!variant.productAttributes || variant.productAttributes.length === 0) continue;
 
-        const existingAttributeIds = new Set(
-          variant.productAttributes
-            .map((pa) => pa.attributeId)
-            .sort()
-        );
+        // Compare attribute count first
+        if (variant.productAttributes.length !== combo.length) continue;
 
-        // If both have same attributes, it's a duplicate
-        if (newAttributeIds.size === existingAttributeIds.size &&
-            [...newAttributeIds].every((id) => existingAttributeIds.has(id))) {
-          const variantNames = variant.productAttributes
-            .map((pa) => pa.attribute?.value || pa.content)
-            .join(" + ");
+        // Sort both for comparison
+        const existingAttrs = variant.productAttributes
+          .map((pa) => ({ id: pa.attributeId, value: pa.attribute?.value || pa.content }))
+          .sort((a, b) => a.id - b.id || a.value.localeCompare(b.value));
+
+        const newAttrs = combo
+          .map((attr) => ({ id: parseInt(attr.id, 10), value: attr.value }))
+          .sort((a, b) => a.id - b.id || a.value.localeCompare(b.value));
+
+        // Check if all attributes match (both id and value)
+        const allMatch = existingAttrs.every((existing, idx) => {
+          const newAttr = newAttrs[idx];
+          return existing.id === newAttr.id && existing.value === newAttr.value;
+        });
+
+        if (allMatch) {
+          const variantNames = existingAttrs.map((a) => a.value).join(" + ");
           duplicateErrors.push(`[${variantNames}] (ID: ${variant.id})`);
           isDuplicate = true;
           break;
