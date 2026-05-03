@@ -84,6 +84,19 @@ class ProductRepository {
       },
     });
   }
+
+  async findVariantsByParentId(parentId) {
+    return await prisma.product.findMany({
+      where: { parentId },
+      include: {
+        productAttributes: {
+          include: {
+            attribute: true,
+          },
+        },
+      },
+    });
+  }
 }
 
 module.exports = new ProductRepository();

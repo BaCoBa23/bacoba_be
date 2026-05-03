@@ -170,6 +170,63 @@ class ProductService {
   async deleteProduct(id) {
     return await productRepo.delete(id);
   }
+
+  async renameProductAndVariants(id, newName) {
+    // Cập nhật tên sản phẩm cha
+    const updatedParent = await productRepo.update(id, { name: newName });
+
+    // Cập nhật tên tất cả variant (con) của sản phẩm
+    const variants = await productRepo.findVariantsByParentId(id);
+    if (variants && variants.length > 0) {
+      for (const variant of variants) {
+        const variantNameSuffix = variant.productAttributes
+          .map((pa) => pa.attribute.value)
+          .join("-");
+        const updatedName = `${newName} - ${variantNameSuffix}`;
+        await productRepo.update(variant.id, { name: updatedName });
+      }
+    }
+
+    return updatedParent;
+  }
+
+  async addVariantToProduct(parentId, attributesData) {
+    // Get parent product
+    const parent = await productRepo.findById(parentId);
+    if (!parent) throw new Error("Parent product not found");
+
+    // Get existing variants count to generate next variant number
+    const variants = await productRepo.findVariantsByParentId(parentId);
+    const nextVariantNumber = variants.length + 1;
+    const variantId = `${parentId}-${nextVariantNumber}`;
+
+    // Build variant name
+    const variantNameSuffix = attributesData.map((attr) => attr.value).join("-");
+    const variantName = `${parent.name} - ${variantNameSuffix}`;
+
+    // Create variant
+    const variantPayload = {
+      id: variantId,
+      name: variantName,
+      parentId: parentId,
+      productTypeId: parent.productTypeId,
+      brandId: parent.brandId,
+      initialPrice: parent.initialPrice,
+      salePrice: parent.salePrice,
+      quantity: 0,
+      description: parent.description,
+      barcode: variantId,
+      status: "active",
+      productAttributes: {
+        create: attributesData.map((attr) => ({
+          attributeId: parseInt(attr.id, 10),
+          content: attr.value,
+        })),
+      },
+    };
+
+    return await productRepo.create(variantPayload);
+  }
 }
 
 module.exports = new ProductService();

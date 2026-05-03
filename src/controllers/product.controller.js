@@ -126,6 +126,68 @@ class ProductController {
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
     }
   };
+
+  renameProduct = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+
+      if (!name || typeof name !== "string") {
+        return res.error({
+          message: "Tên sản phẩm là bắt buộc và phải là chuỗi ký tự",
+          status: 400,
+        });
+      }
+
+      const product = await productService.renameProductAndVariants(id, name);
+
+      if (!product) {
+        return res.error({
+          message: ERROR_MESSAGES.PRODUCT_NOT_FOUND,
+          status: 404,
+        });
+      }
+
+      return res.success({
+        message: "Đổi tên sản phẩm thành công",
+        data: product,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
+
+  addVariant = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { attributes } = req.body;
+
+      if (!attributes || !Array.isArray(attributes) || attributes.length === 0) {
+        return res.error({
+          message: "Attributes là bắt buộc và phải là mảng không rỗng",
+          status: 400,
+        });
+      }
+
+      const variant = await productService.addVariantToProduct(id, attributes);
+
+      return res.success({
+        message: "Thêm variant sản phẩm thành công",
+        data: variant,
+        status: 201,
+      });
+    } catch (error) {
+      console.error(error);
+      if (error.message === "Parent product not found") {
+        return res.error({
+          message: ERROR_MESSAGES.PRODUCT_NOT_FOUND,
+          status: 404,
+        });
+      }
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
 }
 
 module.exports = new ProductController();
