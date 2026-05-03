@@ -195,37 +195,103 @@ class ProductService {
     const parent = await productRepo.findById(parentId);
     if (!parent) throw new Error("Parent product not found");
 
-    // Get existing variants count to generate next variant number
+    // Get existing variants
     const variants = await productRepo.findVariantsByParentId(parentId);
-    const nextVariantNumber = variants.length + 1;
-    const variantId = `${parentId}-${nextVariantNumber}`;
 
-    // Build variant name
-    const variantNameSuffix = attributesData.map((attr) => attr.value).join("-");
-    const variantName = `${parent.name} - ${variantNameSuffix}`;
+    // Convert attributesData to combinations format (support both single value and multiple values)
+    const attributeArrays = attributesData.map((attr) => {
+      // If values is array, use it; if value is single, wrap in array
+      const values = Array.isArray(attr.values) ? attr.values : [attr.value];
+      return {
+        id: attr.id,
+        values: values,
+      };
+    });
 
-    // Create variant
-    const variantPayload = {
-      id: variantId,
-      name: variantName,
-      parentId: parentId,
-      productTypeId: parent.productTypeId,
-      brandId: parent.brandId,
-      initialPrice: parent.initialPrice,
-      salePrice: parent.salePrice,
-      quantity: 0,
-      description: parent.description,
-      barcode: variantId,
-      status: "active",
-      productAttributes: {
-        create: attributesData.map((attr) => ({
-          attributeId: parseInt(attr.id, 10),
-          content: attr.value,
-        })),
-      },
+    // Generate all combinations
+    const combinations = generateCombinations(attributeArrays.map((a) => a.values.map((v) => ({ id: a.id, value: v }))));
+
+    const createdVariants = [];
+    const duplicateErrors = [];
+
+    // Create each variant from combinations
+    for (const combo of combinations) {
+      // Check if variant with same attributes already exists
+      const newAttributeIds = new Set(combo.map((attr) => parseInt(attr.id, 10)).sort());
+      let isDuplicate = false;
+
+      for (const variant of variants) {
+        if (!variant.productAttributes || variant.productAttributes.length === 0) continue;
+
+        const existingAttributeIds = new Set(
+          variant.productAttributes
+            .map((pa) => pa.attributeId)
+            .sort()
+        );
+
+        // If both have same attributes, it's a duplicate
+        if (newAttributeIds.size === existingAttributeIds.size &&
+            [...newAttributeIds].every((id) => existingAttributeIds.has(id))) {
+          const variantNames = variant.productAttributes
+            .map((pa) => pa.attribute?.value || pa.content)
+            .join(" + ");
+          duplicateErrors.push(`[${variantNames}] (ID: ${variant.id})`);
+          isDuplicate = true;
+          break;
+        }
+      }
+
+      if (isDuplicate) continue;
+
+      // Create new variant
+      const nextVariantNumber = variants.length + createdVariants.length + 1;
+      const variantId = `${parentId}-${nextVariantNumber}`;
+      const variantNameSuffix = combo.map((c) => c.value).join("-");
+      const variantName = `${parent.name} - ${variantNameSuffix}`;
+
+      const variantPayload = {
+        id: variantId,
+        name: variantName,
+        parentId: parentId,
+        productTypeId: parent.productTypeId,
+        brandId: parent.brandId,
+        initialPrice: parent.initialPrice,
+        salePrice: parent.salePrice,
+        quantity: 0,
+        description: parent.description,
+        barcode: variantId,
+        status: "active",
+        productAttributes: {
+          create: combo.map((attr) => ({
+            attributeId: parseInt(attr.id, 10),
+            content: attr.value,
+          })),
+        },
+      };
+
+      const created = await productRepo.create(variantPayload);
+      createdVariants.push(created);
+      variants.push(created); // Add to list để check duplicate lần sau
+    }
+
+    // If all are duplicates
+    if (createdVariants.length === 0) {
+      throw new Error(`Tất cả variants đã tồn tại: ${duplicateErrors.join(", ")}`);
+    }
+
+    // If some are duplicates
+    if (duplicateErrors.length > 0) {
+      return {
+        message: `Tạo ${createdVariants.length} variant thành công. Những variant sau đã tồn tại: ${duplicateErrors.join(", ")}`,
+        data: createdVariants,
+        hasWarning: true,
+      };
+    }
+
+    return {
+      message: `Tạo ${createdVariants.length} variant thành công`,
+      data: createdVariants,
     };
-
-    return await productRepo.create(variantPayload);
   }
 }
 

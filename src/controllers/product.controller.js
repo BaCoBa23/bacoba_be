@@ -170,11 +170,21 @@ class ProductController {
         });
       }
 
-      const variant = await productService.addVariantToProduct(id, attributes);
+      const result = await productService.addVariantToProduct(id, attributes);
+
+      // If result has hasWarning, return with status 207 (Multi-Status)
+      if (result.hasWarning) {
+        return res.status(207).json({
+          success: true,
+          message: result.message,
+          data: result.data,
+          warning: true,
+        });
+      }
 
       return res.success({
-        message: "Thêm variant sản phẩm thành công",
-        data: variant,
+        message: result.message || "Thêm variant sản phẩm thành công",
+        data: result.data,
         status: 201,
       });
     } catch (error) {
@@ -183,6 +193,13 @@ class ProductController {
         return res.error({
           message: ERROR_MESSAGES.PRODUCT_NOT_FOUND,
           status: 404,
+        });
+      }
+      // Check for duplicate variant error
+      if (error.message.includes("đã tồn tại")) {
+        return res.error({
+          message: error.message,
+          status: 409,
         });
       }
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
