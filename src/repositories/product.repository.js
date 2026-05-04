@@ -119,6 +119,25 @@ class ProductRepository {
       },
     });
   }
+
+  async createManyVariants(variantsData) {
+    return await prisma.$transaction(
+      variantsData.map((data) =>
+        prisma.product.create({
+          data,
+          include: {
+            type: true,
+            brand: true,
+            productAttributes: {
+              include: {
+                attribute: true,
+              },
+            },
+          },
+        }),
+      ),
+    );
+  }
 }
 
 module.exports = new ProductRepository();

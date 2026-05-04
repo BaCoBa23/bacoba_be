@@ -3,7 +3,12 @@ const {
   validateCreateProduct,
   validateUpdateProduct,
 } = require("../validations/product.validation");
-const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
+const {
+  MESSAGES,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  ERROR_VALIDATIONS,
+} = require("../constants");
 
 class ProductController {
   getList = async (req, res) => {
@@ -177,7 +182,7 @@ class ProductController {
   addVariant = async (req, res) => {
     try {
       const { id } = req.params;
-      const { attributes } = req.body;
+      const attributes = req.body;
 
       if (
         !attributes ||
@@ -185,40 +190,35 @@ class ProductController {
         attributes.length === 0
       ) {
         return res.error({
-          message: "Attributes là bắt buộc và phải là mảng không rỗng",
+          message: ERROR_VALIDATIONS.COMMON_VALIDATE,
           status: 400,
         });
       }
 
       const result = await productService.addVariantToProduct(id, attributes);
 
-      // If result has hasWarning, return with status 207 (Multi-Status)
-      if (result.hasWarning) {
-        return res.status(207).json({
-          success: true,
-          message: result.message,
-          data: result.data,
-          warning: true,
-        });
+      let responseMessage = "Tạo biến thể sản phẩm thành công";
+      if (result.duplicateCount > 0) {
+        responseMessage = `Tạo thành công ${result.createdVariants.length} biến thể. Bỏ qua ${result.duplicateCount} biến thể đã trùng lặp.`;
       }
 
       return res.success({
-        message: result.message || "Thêm variant sản phẩm thành công",
-        data: result.data,
+        message: responseMessage,
+        data: result.createdVariants,
         status: 201,
       });
     } catch (error) {
-      console.error(error);
-      if (error.message === "Parent product not found") {
+      console.error("Error at addVariant:", error);
+
+      if (error.message === "PARENT_NOT_FOUND") {
         return res.error({
           message: ERROR_MESSAGES.PRODUCT_NOT_FOUND,
           status: 404,
         });
       }
-      // Check for duplicate variant error
-      if (error.message.includes("đã tồn tại")) {
+      if (error.message === "ALL_VARIANTS_EXIST") {
         return res.error({
-          message: error.message,
+          message: ERROR_MESSAGES.DUPLICATE_PRODUCT_VARIANTS,
           status: 409,
         });
       }

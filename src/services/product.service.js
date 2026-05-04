@@ -196,124 +196,107 @@ class ProductService {
   }
 
   async addVariantToProduct(parentId, attributesData) {
-    // Get parent product
+    // 1. Kiểm tra product cha
     const parent = await productRepo.findById(parentId);
-    if (!parent) throw new Error("Parent product not found");
+    if (!parent) throw new Error("PARENT_NOT_FOUND");
 
-    // Get existing variants
-    const variants = await productRepo.findVariantsByParentId(parentId);
+    // 2. Nhóm các attribute từ payload theo attributeTypeId
+    // Payload là 1 flat array: [ { id: 3, attributeTypeId: 1, value: "Đỏ" }, ... ]
+    const groupedAttributes = {};
+    for (const attr of attributesData) {
+      if (!groupedAttributes[attr.attributeTypeId]) {
+        groupedAttributes[attr.attributeTypeId] = [];
+      }
+      groupedAttributes[attr.attributeTypeId].push({
+        id: parseInt(attr.id, 10),
+        value: attr.value,
+      });
+    }
 
-    // Convert attributesData to combinations format (support both single value and multiple values)
-    const attributeArrays = attributesData.map((attr) => {
-      // If values is array, use it; if value is single, wrap in array
-      const values = Array.isArray(attr.values) ? attr.values : [attr.value];
-      return {
-        id: attr.id,
-        values: values,
-      };
-    });
+    const formattedAttributes = Object.values(groupedAttributes);
 
-    // Generate all combinations
-    const combinations = generateCombinations(
-      attributeArrays.map((a) => a.values.map((v) => ({ id: a.id, value: v }))),
-    );
+    const combinations = generateCombinations(formattedAttributes);
 
-    const createdVariants = [];
-    const duplicateErrors = [];
+    const existingVariants = await productRepo.findVariantsByParentId(parentId);
 
-    // Create each variant from combinations
-    for (const combo of combinations) {
-      // Check if variant with same attributes AND values already exists
-      let isDuplicate = false;
-
-      for (const variant of variants) {
-        if (
-          !variant.productAttributes ||
-          variant.productAttributes.length === 0
-        )
-          continue;
-
-        // Compare attribute count first
-        if (variant.productAttributes.length !== combo.length) continue;
-
-        // Sort both for comparison
-        const existingAttrs = variant.productAttributes
-          .map((pa) => ({
-            id: pa.attributeId,
-            value: pa.attribute?.value || pa.content,
-          }))
-          .sort((a, b) => a.id - b.id || a.value.localeCompare(b.value));
-
-        const newAttrs = combo
-          .map((attr) => ({ id: parseInt(attr.id, 10), value: attr.value }))
-          .sort((a, b) => a.id - b.id || a.value.localeCompare(b.value));
-
-        // Check if all attributes match (both id and value)
-        const allMatch = existingAttrs.every((existing, idx) => {
-          const newAttr = newAttrs[idx];
-          return existing.id === newAttr.id && existing.value === newAttr.value;
-        });
-
-        if (allMatch) {
-          const variantNames = existingAttrs.map((a) => a.value).join(" + ");
-          duplicateErrors.push(`[${variantNames}] (ID: ${variant.id})`);
-          isDuplicate = true;
-          break;
+    let maxIndex = 0;
+    existingVariants.forEach((v) => {
+      const parts = v.id.split("-");
+      if (parts.length > 1) {
+        const num = parseInt(parts[parts.length - 1], 10);
+        if (!isNaN(num) && num > maxIndex) {
+          maxIndex = num;
         }
       }
+    });
 
-      if (isDuplicate) continue;
+    const variantsToCreatePayload = [];
+    const duplicateCombos = [];
 
-      // Create new variant
-      const nextVariantNumber = variants.length + createdVariants.length + 1;
-      const variantId = `${parentId}-${nextVariantNumber}`;
-      const variantNameSuffix = combo.map((c) => c.value).join("-");
-      const variantName = `${parent.name} - ${variantNameSuffix}`;
+    for (const combo of combinations) {
+      const sortedCombo = [...combo].sort((a, b) => a.id - b.id);
 
-      const variantPayload = {
-        id: variantId,
-        name: variantName,
-        parentId: parentId,
-        productTypeId: parent.productTypeId,
-        brandId: parent.brandId,
-        initialPrice: parent.initialPrice,
-        salePrice: parent.salePrice,
-        quantity: 0,
-        description: parent.description,
-        barcode: variantId,
-        status: "active",
-        productAttributes: {
-          create: combo.map((attr) => ({
-            attributeId: parseInt(attr.id, 10),
-            content: attr.value,
-          })),
-        },
-      };
+      const isExist = existingVariants.some((variant) => {
+        if (
+          !variant.productAttributes ||
+          variant.productAttributes.length !== sortedCombo.length
+        )
+          return false;
 
-      const created = await productRepo.create(variantPayload);
-      createdVariants.push(created);
-      variants.push(created); // Add to list để check duplicate lần sau
+        const sortedVariantAttrs = [...variant.productAttributes].sort(
+          (a, b) => a.attributeId - b.attributeId,
+        );
+
+        return sortedCombo.every((c, index) => {
+          const vAttr = sortedVariantAttrs[index];
+          return (
+            c.id === vAttr.attributeId &&
+            c.value === (vAttr.attribute?.value || vAttr.content)
+          );
+        });
+      });
+
+      if (isExist) {
+        duplicateCombos.push(combo);
+      } else {
+        maxIndex++;
+        const variantId = `${parentId}-${maxIndex}`;
+        const variantNameSuffix = combo.map((c) => c.value).join("-");
+
+        variantsToCreatePayload.push({
+          id: variantId,
+          name: `${parent.name} - ${variantNameSuffix}`,
+          parentId: parentId,
+          productTypeId: parent.productTypeId,
+          brandId: parent.brandId,
+          initialPrice: parent.initialPrice,
+          salePrice: parent.salePrice,
+          quantity: 0,
+          description:
+            parent.description || `${parent.name} - ${variantNameSuffix}`,
+          barcode: variantId,
+          status: "active",
+          productAttributes: {
+            create: combo.map((attr) => ({
+              attributeId: attr.id,
+              content: attr.value,
+            })),
+          },
+        });
+      }
     }
 
-    // If all are duplicates
-    if (createdVariants.length === 0) {
-      throw new Error(
-        `Tất cả variants đã tồn tại: ${duplicateErrors.join(", ")}`,
-      );
+    if (variantsToCreatePayload.length === 0) {
+      throw new Error("ALL_VARIANTS_EXIST");
     }
 
-    // If some are duplicates
-    if (duplicateErrors.length > 0) {
-      return {
-        message: `Tạo ${createdVariants.length} variant thành công. Những variant sau đã tồn tại: ${duplicateErrors.join(", ")}`,
-        data: createdVariants,
-        hasWarning: true,
-      };
-    }
+    const createdVariants = await productRepo.createManyVariants(
+      variantsToCreatePayload,
+    );
 
     return {
-      message: `Tạo ${createdVariants.length} variant thành công`,
-      data: createdVariants,
+      createdVariants,
+      duplicateCount: duplicateCombos.length,
     };
   }
 }
