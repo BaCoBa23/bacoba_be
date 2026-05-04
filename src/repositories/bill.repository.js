@@ -277,6 +277,78 @@ class BillRepository {
       });
     });
   }
+
+  async returnBillWithTransaction(id) {
+    return await prisma.$transaction(async (tx) => {
+      // Lấy bill và billProducts để trả hàng
+      const bill = await tx.bill.findUnique({
+        where: { id },
+        include: {
+          billProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      if (!bill) {
+        throw new Error("BILL_NOT_FOUND");
+      }
+
+      // Increment kho cho tất cả billProducts
+      for (const bp of bill.billProducts) {
+        const updatedProduct = await tx.product.update({
+          where: { id: bp.productId },
+          data: {
+            quantity: {
+              increment: bp.quantity,
+            },
+          },
+        });
+
+        // Update kho parent product nếu có
+        if (updatedProduct?.parentId) {
+          const totalVariantQuantity = await tx.product.aggregate({
+            where: { parentId: updatedProduct.parentId },
+            _sum: { quantity: true },
+          });
+
+          await tx.product.update({
+            where: { id: updatedProduct.parentId },
+            data: { quantity: totalVariantQuantity._sum.quantity || 0 },
+          });
+        }
+      }
+
+      // Update status bill thành "returned"
+      await tx.bill.update({
+        where: { id },
+        data: { status: "returned" },
+      });
+
+      // Update status tất cả billProducts thành "returned"
+      await tx.billProduct.updateMany({
+        where: { billId: id },
+        data: { status: "returned" },
+      });
+
+      // Lấy lại bill sau khi update
+      const updatedBill = await tx.bill.findUnique({
+        where: { id },
+        include: {
+          billProducts: {
+            include: {
+              product: true,
+            },
+          },
+          exchange: true,
+        },
+      });
+
+      return updatedBill;
+    });
+  }
 }
 
 module.exports = new BillRepository();

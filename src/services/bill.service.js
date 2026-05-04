@@ -156,6 +156,11 @@ class BillService {
     const bill = await billRepo.deleteWithTransaction(id);
     return formatBill(bill);
   }
+
+  async returnBill(id) {
+    const bill = await billRepo.returnBillWithTransaction(id);
+    return formatBill(bill);
+  }
 }
 
 module.exports = new BillService();

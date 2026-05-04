@@ -129,6 +129,42 @@ class BillController {
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
     }
   };
+
+  return = async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      if (!id || isNaN(parseInt(id, 10))) {
+        return res.error({
+          message: "ID hoá đơn không hợp lệ",
+          status: 400,
+        });
+      }
+
+      const bill = await billService.returnBill(parseInt(id, 10));
+
+      if (!bill) {
+        return res.error({
+          message: ERROR_MESSAGES.BILL_NOT_FOUND,
+          status: 404,
+        });
+      }
+
+      return res.success({
+        message: "Trả hàng thành công",
+        data: bill,
+      });
+    } catch (error) {
+      console.error("Error in return:", error);
+      if (error.message === "BILL_NOT_FOUND") {
+        return res.error({
+          message: ERROR_MESSAGES.BILL_NOT_FOUND,
+          status: 404,
+        });
+      }
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
 }
 
 module.exports = new BillController();
