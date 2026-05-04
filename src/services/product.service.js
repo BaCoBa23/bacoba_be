@@ -75,6 +75,11 @@ class ProductService {
     return await productRepo.findById(id);
   }
 
+  async getParentAttributes(parentId) {
+    const attributes = await productRepo.findAttributesByParentId(parentId);
+    return attributes;
+  }
+
   async createProduct(data) {
     const parentId = generateProductId();
     const productTypeId = parseInt(data.productTypeId, 10);
@@ -209,7 +214,9 @@ class ProductService {
     });
 
     // Generate all combinations
-    const combinations = generateCombinations(attributeArrays.map((a) => a.values.map((v) => ({ id: a.id, value: v }))));
+    const combinations = generateCombinations(
+      attributeArrays.map((a) => a.values.map((v) => ({ id: a.id, value: v }))),
+    );
 
     const createdVariants = [];
     const duplicateErrors = [];
@@ -220,14 +227,21 @@ class ProductService {
       let isDuplicate = false;
 
       for (const variant of variants) {
-        if (!variant.productAttributes || variant.productAttributes.length === 0) continue;
+        if (
+          !variant.productAttributes ||
+          variant.productAttributes.length === 0
+        )
+          continue;
 
         // Compare attribute count first
         if (variant.productAttributes.length !== combo.length) continue;
 
         // Sort both for comparison
         const existingAttrs = variant.productAttributes
-          .map((pa) => ({ id: pa.attributeId, value: pa.attribute?.value || pa.content }))
+          .map((pa) => ({
+            id: pa.attributeId,
+            value: pa.attribute?.value || pa.content,
+          }))
           .sort((a, b) => a.id - b.id || a.value.localeCompare(b.value));
 
         const newAttrs = combo
@@ -283,7 +297,9 @@ class ProductService {
 
     // If all are duplicates
     if (createdVariants.length === 0) {
-      throw new Error(`Tất cả variants đã tồn tại: ${duplicateErrors.join(", ")}`);
+      throw new Error(
+        `Tất cả variants đã tồn tại: ${duplicateErrors.join(", ")}`,
+      );
     }
 
     // If some are duplicates

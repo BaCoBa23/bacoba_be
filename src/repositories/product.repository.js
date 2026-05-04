@@ -97,6 +97,28 @@ class ProductRepository {
       },
     });
   }
+
+  async findAttributesByParentId(parentId) {
+    return await prisma.attribute.findMany({
+      where: {
+        productAttributes: {
+          some: {
+            product: {
+              parentId: parentId,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        attributeTypeId: true,
+        value: true,
+      },
+      orderBy: {
+        attributeTypeId: "asc",
+      },
+    });
+  }
 }
 
 module.exports = new ProductRepository();

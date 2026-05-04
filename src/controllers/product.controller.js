@@ -158,12 +158,32 @@ class ProductController {
     }
   };
 
+  getParentAttributes = async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const attributes = await productService.getParentAttributes(id);
+
+      return res.success({
+        message: SUCCESS_MESSAGES.PRODUCT_ATTRIBUTE_BY_PRODUCT_LIST_SUCCESSFUL,
+        data: attributes,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
+
   addVariant = async (req, res) => {
     try {
       const { id } = req.params;
       const { attributes } = req.body;
 
-      if (!attributes || !Array.isArray(attributes) || attributes.length === 0) {
+      if (
+        !attributes ||
+        !Array.isArray(attributes) ||
+        attributes.length === 0
+      ) {
         return res.error({
           message: "Attributes là bắt buộc và phải là mảng không rỗng",
           status: 400,
