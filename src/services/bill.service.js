@@ -38,6 +38,27 @@ const formatBill = (bill) => {
 };
 
 class BillService {
+  // Parse date from DD-MM-YYYY format to Date object
+  parseDate(dateString) {
+    if (!dateString) return null;
+    
+    // Try DD-MM-YYYY format
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const year = parseInt(parts[2], 10);
+      
+      if (day > 0 && day <= 31 && month > 0 && month <= 12 && year > 1900) {
+        return new Date(year, month - 1, day);
+      }
+    }
+    
+    // Try ISO format or other formats
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
   async getBills(query) {
     const { page, pageSize, skip, take, orderBy } = buildPagination(query);
 
@@ -129,6 +150,12 @@ class BillService {
       updateData.exchangeId = data.exchangeId
         ? parseInt(data.exchangeId, 10)
         : null;
+    
+    // Handle createdAt if provided (DD-MM-YYYY format)
+    if (data.createdAt !== undefined) {
+      const date = this.parseDate(data.createdAt);
+      if (date) updateData.createdAt = date;
+    }
 
     // Nếu có billProducts, update với transaction
     if (data.billProducts && Array.isArray(data.billProducts)) {
