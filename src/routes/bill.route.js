@@ -10,6 +10,8 @@ router.get("/:id", billController.getById);
 router.put("/:id", billController.update);
 router.delete("/:id", billController.delete);
 router.post("/:id/return", billController.return);
+router.post("/:id/exchange", billController.exchange);
+
 
 // Bill Products - Nested routes
 router.get("/:id/products", billProductController.getByBillId);

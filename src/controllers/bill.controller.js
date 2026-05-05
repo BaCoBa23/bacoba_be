@@ -165,6 +165,54 @@ class BillController {
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
     }
   };
+
+  exchange = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = req.body || {};
+
+      if (!id || isNaN(parseInt(id, 10))) {
+        return res.error({
+          message: "ID hoá đơn không hợp lệ",
+          status: 400,
+        });
+      }
+
+      const errors = validateCreateBill(data);
+
+      if (Object.keys(errors).length > 0) {
+        return res.error({
+          message: MESSAGES.VALIDATION_ERROR,
+          status: 400,
+          errors,
+        });
+      }
+
+      const bill = await billService.exchangeBill(parseInt(id, 10), data);
+
+      if (!bill) {
+        return res.error({
+          message: ERROR_MESSAGES.BILL_NOT_FOUND,
+          status: 404,
+        });
+      }
+
+      return res.success({
+        message: "Đổi hàng thành công",
+        data: bill,
+        status: 201,
+      });
+    } catch (error) {
+      console.error("Error in exchange:", error);
+      if (error.message === "BILL_NOT_FOUND") {
+        return res.error({
+          message: ERROR_MESSAGES.BILL_NOT_FOUND,
+          status: 404,
+        });
+      }
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
 }
 
 module.exports = new BillController();

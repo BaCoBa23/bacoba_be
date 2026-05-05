@@ -161,6 +161,36 @@ class BillService {
     const bill = await billRepo.returnBillWithTransaction(id);
     return formatBill(bill);
   }
+
+  async exchangeBill(originalBillId, data) {
+    // Nếu billProducts rỗng -> chỉ trả hàng, không tạo bill mới
+    if (!data.billProducts || data.billProducts.length === 0) {
+      return await this.returnBill(originalBillId);
+    }
+
+    const newBillData = {
+      name: data.name || null,
+      customerName: data.customerName || null,
+      phoneNumber: data.phoneNumber || null,
+      discount: parseFloat(data.discount) || 0,
+      total: parseFloat(data.total),
+      status: data.status || BillStatus.COMPLETED,
+    };
+
+    const newBillProductsData = data.billProducts.map((bp) => ({
+      productId: bp.productId,
+      quantity: parseInt(bp.quantity, 10),
+      salePrice: parseFloat(bp.salePrice),
+      total: parseFloat(bp.total),
+    }));
+
+    const bill = await billRepo.createExchangeBill(
+      originalBillId,
+      newBillData,
+      newBillProductsData,
+    );
+    return formatBill(bill);
+  }
 }
 
 module.exports = new BillService();

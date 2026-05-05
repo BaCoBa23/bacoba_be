@@ -349,6 +349,109 @@ class BillRepository {
       return updatedBill;
     });
   }
+
+  async createExchangeBill(originalBillId, newBillData, newBillProductsData) {
+    return await prisma.$transaction(async (tx) => {
+      // B1: Lấy bill gốc
+      const originalBill = await tx.bill.findUnique({
+        where: { id: originalBillId },
+        include: {
+          billProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      if (!originalBill) {
+        throw new Error("BILL_NOT_FOUND");
+      }
+
+      // B1: Hoàn lại kho cho tất cả sản phẩm cũ
+      for (const bp of originalBill.billProducts) {
+        const updatedProduct = await tx.product.update({
+          where: { id: bp.productId },
+          data: {
+            quantity: {
+              increment: bp.quantity,
+            },
+          },
+        });
+
+        // Update kho parent product nếu có
+        if (updatedProduct?.parentId) {
+          const totalVariantQuantity = await tx.product.aggregate({
+            where: { parentId: updatedProduct.parentId },
+            _sum: { quantity: true },
+          });
+
+          await tx.product.update({
+            where: { id: updatedProduct.parentId },
+            data: { quantity: totalVariantQuantity._sum.quantity || 0 },
+          });
+        }
+      }
+
+      // B1: Update status bill gốc thành "exchanged"
+      await tx.bill.update({
+        where: { id: originalBillId },
+        data: { status: "exchanged" },
+      });
+
+      // B1: Update status tất cả billProducts gốc thành "exchanged"
+      await tx.billProduct.updateMany({
+        where: { billId: originalBillId },
+        data: { status: "exchanged" },
+      });
+
+      // B2: Tạo bill mới với exchangedId tham chiếu bill gốc
+      const newBill = await tx.bill.create({
+        data: {
+          ...newBillData,
+          exchangeId: originalBillId,
+          billProducts: {
+            create: newBillProductsData,
+          },
+        },
+        include: {
+          billProducts: {
+            include: {
+              product: true,
+            },
+          },
+          exchange: true,
+        },
+      });
+
+      // B2: Giảm kho cho sản phẩm mới
+      for (const bp of newBillProductsData) {
+        const updatedProduct = await tx.product.update({
+          where: { id: bp.productId },
+          data: {
+            quantity: {
+              decrement: bp.quantity,
+            },
+          },
+        });
+
+        // Update kho parent product nếu có
+        if (updatedProduct?.parentId) {
+          const totalVariantQuantity = await tx.product.aggregate({
+            where: { parentId: updatedProduct.parentId },
+            _sum: { quantity: true },
+          });
+
+          await tx.product.update({
+            where: { id: updatedProduct.parentId },
+            data: { quantity: totalVariantQuantity._sum.quantity || 0 },
+          });
+        }
+      }
+
+      return newBill;
+    });
+  }
 }
 
 module.exports = new BillRepository();
