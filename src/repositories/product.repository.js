@@ -1,7 +1,7 @@
 const prisma = require("../config/prisma.config");
 
 class ProductRepository {
-  async findAndCount({ skip, take, where, orderBy }) {
+  async findAndCount({ skip, take, where, orderBy, variantWhere }) {
     const [data, totalItems] = await Promise.all([
       prisma.product.findMany({
         skip,
@@ -12,11 +12,15 @@ class ProductRepository {
           brand: true,
           type: true,
           variants: {
+            where:
+              variantWhere && Object.keys(variantWhere).length > 0
+                ? variantWhere
+                : undefined,
             include: {
-              type: true, // Lấy type cho biến thể
+              type: true,
               productAttributes: {
                 include: {
-                  attribute: true, // Lấy detail thuộc tính (Màu, Size...)
+                  attribute: true,
                 },
               },
             },
