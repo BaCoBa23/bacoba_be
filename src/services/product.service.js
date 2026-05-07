@@ -11,7 +11,7 @@ class ProductService {
     const { page, pageSize, skip, take, orderBy } = buildPagination(query);
 
     const where = { parentId: null };
-    const { search, brandId, typeId, status } = query;
+    const { search, brandId, typeId, status, attribute } = query;
 
     if (search) {
       where.OR = [
@@ -20,21 +20,62 @@ class ProductService {
         { barcode: { contains: search } },
       ];
     }
+
     if (brandId) where.brandId = parseInt(brandId, 10);
-    if (typeId) where.productTypeId = parseInt(typeId, 10);
     if (status) where.status = status;
 
+    // 1. Xử lý filter ProductType hỗ trợ nhiều giá trị (ngăn cách bằng dấu phẩy)
+    if (typeId) {
+      const typeIds = typeId
+        .split(",")
+        .map((id) => parseInt(id.trim(), 10))
+        .filter((id) => !isNaN(id));
+      if (typeIds.length > 0) {
+        where.productTypeId = { in: typeIds };
+      }
+    }
+
+    // 2. Xử lý filter Attribute hỗ trợ nhiều giá trị
+    const variantWhere = {};
+    if (attribute) {
+      const attrIds = attribute
+        .split(",")
+        .map((id) => parseInt(id.trim(), 10))
+        .filter((id) => !isNaN(id));
+      if (attrIds.length > 0) {
+        where.variants = {
+          some: {
+            productAttributes: {
+              some: {
+                attributeId: { in: attrIds },
+              },
+            },
+          },
+        };
+
+        // Điều kiện cho con: Chỉ Include những biến thể nào có chứa thuộc tính hợp lệ
+        variantWhere.productAttributes = {
+          some: {
+            attributeId: { in: attrIds },
+          },
+        };
+      }
+    }
+
+    // Truyền thêm variantWhere xuống Repo
     const { data, totalItems } = await productRepo.findAndCount({
       skip,
       take,
       where,
       orderBy,
+      variantWhere,
     });
+
     const formattedData = data.map((product) => {
       return {
         id: product.id,
         name: product.name,
-        productType: product.type, // Đổi 'type' của Prisma thành 'productType'
+        productType: product.type,
         initialPrice: product.initialPrice,
         salePrice: product.salePrice,
         quantity: product.quantity,
@@ -43,7 +84,6 @@ class ProductService {
         status: product.status,
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
-        // Map mảng variants
         variants: product.variants.map((variant) => ({
           id: variant.id,
           name: variant.name,
@@ -54,7 +94,6 @@ class ProductService {
           description: variant.description,
           barcode: variant.barcode,
           status: variant.status,
-          // Bóc tách productAttributes thành mảng attributes [{ id, value }]
           attributes: variant.productAttributes.map((pa) => ({
             id: pa.attribute.id,
             value: pa.attribute.value,
@@ -66,7 +105,7 @@ class ProductService {
     });
 
     return {
-      data: formattedData, // Trả về mảng đã format
+      data: formattedData,
       meta: buildMeta(totalItems, page, pageSize),
     };
   }
