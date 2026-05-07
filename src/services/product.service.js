@@ -137,11 +137,11 @@ class ProductService {
         connect: { id: productTypeId },
       },
     };
-    if (brandId) {
-      productData.brand = {
-        connect: { id: brandId },
-      };
-    }
+    // if (brandId) {
+    //   productData.brand = {
+    //     connect: { id: brandId },
+    //   };
+    // }
     if (
       data.attributes &&
       Array.isArray(data.attributes) &&
@@ -172,11 +172,11 @@ class ProductService {
             })),
           },
         };
-        if (brandId) {
-          variantPayload.brand = {
-            connect: { id: brandId },
-          };
-        }
+        // if (brandId) {
+        //   variantPayload.brand = {
+        //     connect: { id: brandId },
+        //   };
+        // }
 
         return variantPayload;
       });
@@ -307,7 +307,7 @@ class ProductService {
           name: `${parent.name} - ${variantNameSuffix}`,
           parentId: parentId,
           productTypeId: parent.productTypeId,
-          brandId: parent.brandId,
+          // brandId: parent.brandId,
           initialPrice: parent.initialPrice,
           salePrice: parent.salePrice,
           quantity: 0,

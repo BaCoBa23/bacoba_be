@@ -9,7 +9,7 @@ class ProductRepository {
         where,
         orderBy,
         include: {
-          brand: true,
+          // brand: true,
           type: true,
           variants: {
             where:
@@ -37,7 +37,7 @@ class ProductRepository {
     return await prisma.product.findUnique({
       where: { id },
       include: {
-        brand: true,
+        // brand: true,
         type: true,
         variants: true,
         productAttributes: {
@@ -53,7 +53,7 @@ class ProductRepository {
     return await prisma.product.create({
       data,
       include: {
-        brand: true,
+        // brand: true,
         type: true,
         variants: {
           include: {
@@ -73,7 +73,7 @@ class ProductRepository {
       where: { id },
       data,
       include: {
-        brand: true,
+        // brand: true,
         type: true,
       },
     });
@@ -83,7 +83,7 @@ class ProductRepository {
     return await prisma.product.delete({
       where: { id },
       include: {
-        brand: true,
+        // brand: true,
         type: true,
       },
     });
@@ -131,7 +131,7 @@ class ProductRepository {
           data,
           include: {
             type: true,
-            brand: true,
+            // brand: true,
             productAttributes: {
               include: {
                 attribute: true,

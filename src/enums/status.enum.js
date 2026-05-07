@@ -20,7 +20,7 @@ const ReceiveNoteStatus = {
 const BillStatus = {
   COMPLETED: "completed",
   RETURNED: "returned",
-  EXCHANGED: "exchanged",
+  CANCELLED: "cancelled",
 };
 
 const HistoryProviderStatus = {
