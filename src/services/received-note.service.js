@@ -8,10 +8,39 @@ class ReceivedNoteService {
     const { page, pageSize, skip, take, orderBy } = buildPagination(query);
 
     const where = {};
-    const { providerId, status } = query;
+    const { providerId, status, search } = query;
 
     if (providerId) where.providerId = parseInt(providerId, 10);
-    if (status) where.status = status;
+    
+    // Handle status filter - support array, comma-separated string, or single value
+    if (status) {
+      let statusArray = [];
+      if (Array.isArray(status)) {
+        statusArray = status;
+      } else if (typeof status === 'string') {
+        statusArray = status.split(',').map(s => s.trim());
+      }
+      if (statusArray.length > 0) {
+        where.status = { in: statusArray };
+      }
+    }
+    
+    if (search) {
+      const orConditions = [];
+      
+      // Search by id (exact match if numeric)
+      const searchAsNumber = parseInt(search, 10);
+      if (!isNaN(searchAsNumber)) {
+        orConditions.push({ id: searchAsNumber });
+      }
+      
+      // Search by provider name
+      orConditions.push({ provider: { name: { contains: search } } });
+      
+      if (orConditions.length > 0) {
+        where.OR = orConditions;
+      }
+    }
 
     const { data, totalItems } = await receivedNoteRepo.findAndCount({
       skip,
