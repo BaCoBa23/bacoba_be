@@ -26,6 +26,21 @@ class ProductController {
     }
   };
 
+  getSearchedList = async (req, res) => {
+    try {
+      const result = await productService.getSearchProducts(req.query);
+  
+      return res.success({
+        message: SUCCESS_MESSAGES.PRODUCT_LIST_SUCCESSFUL,
+        data: result.data,
+        total: result.totalItems, // Trả về tổng số bản ghi đơn giản
+      });
+    } catch (error) {
+      console.error("Error in getList Product:", error);
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
+
   getById = async (req, res) => {
     try {
       const { id } = req.params;

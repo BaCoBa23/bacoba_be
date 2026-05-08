@@ -1,3 +1,4 @@
+const prisma = require("../config/prisma.config");
 const productRepo = require("../repositories/product.repository");
 const {
   buildPagination,
@@ -115,6 +116,75 @@ class ProductService {
     return {
       data: formattedData,
       meta: buildMeta(totalItems, page, pageSize),
+    };
+  }
+  
+  async getSearchProducts(query) {
+    const { search } = query;
+    let where = { parentId: null }; // Luôn lấy gốc là sản phẩm cha
+    let variantWhere = null;
+  
+    if (search) {
+      // Kiểm tra xem search có phải là ID chính xác của một sản phẩm con hay không
+      const exactVariant = await prisma.product.findFirst({
+        where: {
+          id: search,
+          parentId: { not: null },
+        },
+      });
+  
+      if (exactVariant) {
+        // TRƯỜNG HỢP 1: Search khớp chính xác ID con
+        where = { id: exactVariant.parentId }; // Tìm sản phẩm cha của nó
+        variantWhere = { id: search };          // Chỉ lấy đúng thằng con đó
+      } else {
+        // TRƯỜNG HỢP 2: Search thông thường (Id hoặc Name)
+        where.OR = [
+          { id: { contains: search } },
+          { name: { contains: search } },
+        ];
+      }
+    }
+  
+    const { data, totalItems } = await productRepo.findAndCountExactly({
+      where,
+      variantWhere,
+    });
+  
+    const formattedData = data.map((product) => ({
+      id: product.id,
+      name: product.name,
+      productType: product.type,
+      initialPrice: product.initialPrice,
+      salePrice: product.salePrice,
+      quantity: product.quantity,
+      description: product.description,
+      barcode: product.barcode,
+      status: product.status,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      variants: product.variants.map((variant) => ({
+        id: variant.id,
+        name: variant.name,
+        productType: variant.type,
+        initialPrice: variant.initialPrice,
+        salePrice: variant.salePrice,
+        quantity: variant.quantity,
+        description: variant.description,
+        barcode: variant.barcode,
+        status: variant.status,
+        attributes: variant.productAttributes.map((pa) => ({
+          id: pa.attribute.id,
+          value: pa.attribute.value,
+        })),
+        createdAt: variant.createdAt,
+        updatedAt: variant.updatedAt,
+      })),
+    }));
+  
+    return {
+      data: formattedData,
+      totalItems,
     };
   }
 

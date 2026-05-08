@@ -33,6 +33,32 @@ class ProductRepository {
     return { data, totalItems };
   }
 
+  async findAndCountExactly({ where, variantWhere }) {
+    const [data, totalItems] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: {
+          type: true,
+          variants: {
+            // Nếu variantWhere có giá trị, Prisma sẽ chỉ lấy các con thỏa mãn
+            where: variantWhere || undefined, 
+            include: {
+              type: true,
+              productAttributes: {
+                include: {
+                  attribute: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.product.count({ where }),
+    ]);
+  
+    return { data, totalItems };
+  }
+
   async findById(id) {
     return await prisma.product.findUnique({
       where: { id },
