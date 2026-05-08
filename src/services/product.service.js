@@ -198,10 +198,11 @@ class ProductService {
   }
 
   async createProduct(data) {
-    const parentId = generateProductId();
+    const genId =  generateProductId();
+    const parentId = data.prefix ? `${data.prefix}-${genId}` : genId;
+
     const productTypeId = parseInt(data.productTypeId, 10);
     const brandId = data.brandId ? parseInt(data.brandId, 10) : null;
-
     const productData = {
       id: parentId,
       name: data.name,
