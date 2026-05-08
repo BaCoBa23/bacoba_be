@@ -66,13 +66,36 @@ class BillService {
     const { search, status } = query;
 
     if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { customerName: { contains: search } },
-        { phoneNumber: { contains: search } },
-      ];
+      const orConditions = [];
+      
+      // Search by id (exact match if numeric)
+      const searchAsNumber = parseInt(search, 10);
+      if (!isNaN(searchAsNumber)) {
+        orConditions.push({ id: searchAsNumber });
+      }
+      
+      // Search by customer name
+      orConditions.push({ customerName: { contains: search } });
+      
+      if (orConditions.length > 0) {
+        where.OR = orConditions;
+      }
     }
-    if (status) where.status = status;
+    
+    // Handle status filter - support array, comma-separated string, or single value
+    if (status) {
+      let statusArray = [];
+      if (Array.isArray(status)) {
+        statusArray = status;
+      } else if (typeof status === 'string') {
+        statusArray = status.split(',').map(s => s.trim());
+      }
+      // Normalize to lowercase
+      statusArray = statusArray.map(s => s.toLowerCase());
+      if (statusArray.length > 0) {
+        where.status = { in: statusArray };
+      }
+    }
 
     const { data, totalItems } = await billRepo.findAndCount({
       skip,
@@ -105,7 +128,7 @@ class BillService {
       phoneNumber: data.phoneNumber || null,
       discount: parseFloat(data.discount) || 0,
       total: parseFloat(data.total),
-      status: data.status || BillStatus.PENDING,
+      status: data.status || BillStatus.COMPLETED,
       exchangeId: data.exchangeId ? parseInt(data.exchangeId, 10) : null,
     };
 
