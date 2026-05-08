@@ -16,8 +16,16 @@ class ProductService {
     if (search) {
       where.OR = [
         { id: { contains: search } },
-        { description: { contains: search } },
+        { name: { contains: search } },
         { barcode: { contains: search } },
+        {
+          // MỚI: Search theo ID của sản phẩm con (variants)
+          variants: {
+            some: {
+              id: { contains: search },
+            },
+          },
+        },
       ];
     }
 
