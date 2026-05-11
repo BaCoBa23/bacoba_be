@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const { responseMiddleware } = require("./src/middlewares");
 const routes = require("./src/routes");
+const startBackupCron = require("./src/utils/backup");
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use(routes);
 app.use((req, res) => {
   res.error({ message: "API Endpoint Not Found", status: 404 });
 });
+startBackupCron();
 
 const PORT = process.env.PORT || 5555;
 app.listen(PORT, () => {
