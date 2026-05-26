@@ -150,33 +150,72 @@ class ProductController {
   renameProduct = async (req, res) => {
     try {
       const { id } = req.params;
-      const { name } = req.body;
-
-      if (!name || typeof name !== "string") {
-        return res.error({
-          message: "Tên sản phẩm là bắt buộc và phải là chuỗi ký tự",
-          status: 400,
-        });
+      const { name, productTypeId, initialPrice, salePrice } = req.body;
+  
+      // --- VALIDATION ĐẦU VÀO ---
+      // Khởi tạo object chứa dữ liệu sạch sau khi validate
+      const updateData = {};
+  
+      // Validate Name (nếu có truyền lên)
+      if (name !== undefined) {
+        if (!name || typeof name !== "string") {
+          return res.error({ message: "Tên sản phẩm phải là chuỗi ký tự hợp lệ", status: 400 });
+        }
+        updateData.name = name;
       }
-
-      const product = await productService.renameProductAndVariants(id, name);
-
-      if (!product) {
+  
+      // Validate Product Type Id (nếu có truyền lên)
+      if (productTypeId !== undefined) {
+        if (!Number.isInteger(productTypeId)) {
+          return res.error({ message: "Mã loại sản phẩm (productTypeId) phải là số nguyên", status: 400 });
+        }
+        updateData.productTypeId = productTypeId;
+      }
+  
+      // Validate Initial Price (nếu có truyền lên)
+      if (initialPrice !== undefined) {
+        if (typeof initialPrice !== "number" || initialPrice < 0) {
+          return res.error({ message: "Giá vốn (initialPrice) phải là số và không được âm", status: 400 });
+        }
+        updateData.initialPrice = initialPrice;
+      }
+  
+      // Validate Sale Price (nếu có truyền lên)
+      if (salePrice !== undefined) {
+        if (typeof salePrice !== "number" || salePrice < 0) {
+          return res.error({ message: "Giá bán (salePrice) phải là số và không được âm", status: 400 });
+        }
+        updateData.salePrice = salePrice;
+      }
+  
+      // Nếu không truyền trường nào lên để cập nhật
+      if (Object.keys(updateData).length === 0) {
+        return res.error({ message: "Không có dữ liệu nào được thay đổi", status: 400 });
+      }
+  
+      // --- GỌI TẦNG NGHIỆP VỤ ---
+      // (Giả sử bạn gọi qua productService, và service gọi sang repo đã sửa ở trên)
+      const product = await productService.renameProductAndVariants(id, updateData);
+  
+      return res.success({
+        message: "Cập nhật thông tin sản phẩm và các biến thể thành công",
+        data: product,
+      });
+  
+    } catch (error) {
+      console.error(error);
+      
+      // Bắt lỗi Prisma P2025 (Không tìm thấy ID sản phẩm cha cần update)
+      if (error.code === "P2025") {
         return res.error({
           message: ERROR_MESSAGES.PRODUCT_NOT_FOUND,
           status: 404,
         });
       }
-
-      return res.success({
-        message: "Đổi tên sản phẩm thành công",
-        data: product,
-      });
-    } catch (error) {
-      console.error(error);
+  
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
     }
-  };
+  };  
 
   getParentAttributes = async (req, res) => {
     try {

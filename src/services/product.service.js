@@ -294,23 +294,64 @@ class ProductService {
     return await productRepo.delete(id);
   }
 
-  async renameProductAndVariants(id, newName) {
-    // Cập nhật tên sản phẩm cha
-    const updatedParent = await productRepo.update(id, { name: newName });
-
-    // Cập nhật tên tất cả variant (con) của sản phẩm
+  async renameProductAndVariants(id, { name, productTypeId, initialPrice, salePrice }) {
+    // 1. Lấy thông tin các biến thể hiện tại để phục vụ việc nối tên sau này
     const variants = await productRepo.findVariantsByParentId(id);
+  
+    const operations = [];
+  
+    // 2. Tạo data object cho sản phẩm cha (chỉ nạp các trường có dữ liệu)
+    const parentData = {};
+    if (name !== undefined) parentData.name = name;
+    if (productTypeId !== undefined) parentData.productTypeId = productTypeId;
+    if (initialPrice !== undefined) parentData.initialPrice = initialPrice;
+    if (salePrice !== undefined) parentData.salePrice = salePrice;
+  
+    // Thêm câu lệnh cập nhật sản phẩm cha vào danh sách chờ
+    operations.push(
+      prisma.product.update({
+        where: { id },
+        data: parentData,
+        include: { type: true }, // Giữ include cũ của bạn nếu cần trả về controller
+      })
+    );
+  
+    // 3. Tạo data object đồng bộ cho các biến thể con
     if (variants && variants.length > 0) {
       for (const variant of variants) {
-        const variantNameSuffix = variant.productAttributes
-          .map((pa) => pa.attribute.value)
-          .join("-");
-        const updatedName = `${newName} - ${variantNameSuffix}`;
-        await productRepo.update(variant.id, { name: updatedName });
+        const variantData = {};
+        
+        // Đồng bộ Loại và Giá từ cha xuống con
+        if (productTypeId !== undefined) variantData.productTypeId = productTypeId;
+        if (initialPrice !== undefined) variantData.initialPrice = initialPrice;
+        if (salePrice !== undefined) variantData.salePrice = salePrice;
+  
+        // Xử lý đổi tên biến thể nếu tên cha thay đổi
+        if (name !== undefined) {
+          const variantNameSuffix = variant.productAttributes
+            .map((pa) => pa.attribute.value)
+            .join("-");
+          
+          variantData.name = variantNameSuffix 
+            ? `${name} - ${variantNameSuffix}`
+            : name;
+        }
+  
+        // Thêm câu lệnh cập nhật biến thể vào danh sách chờ
+        operations.push(
+          prisma.product.update({
+            where: { id: variant.id },
+            data: variantData,
+          })
+        );
       }
     }
-
-    return updatedParent;
+  
+    // 4. Thực thi đồng thời trong 1 Transaction an toàn
+    const results = await prisma.$transaction(operations);
+    
+    // Trả về kết quả của sản phẩm cha (phần tử đầu tiên)
+    return results[0];
   }
 
   async addVariantToProduct(parentId, attributesData) {
