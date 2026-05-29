@@ -4,7 +4,7 @@ const buildPagination = (query) => {
   const skip = (page - 1) * pageSize;
   const take = pageSize;
 
-  let orderBy = { createdAt: "asc" };
+  let orderBy = { createdAt: "desc" };
 
   // Xử lý order dạng JSON { 'price': 'asc', 'createdAt': 'desc' }
   if (query.order) {
