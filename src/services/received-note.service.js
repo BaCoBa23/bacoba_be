@@ -173,7 +173,16 @@ class ReceivedNoteService {
     if (data.description !== undefined)
       updateData.description = data.description;
     if (data.status !== undefined) updateData.status = data.status;
-
+    if (data.createdAt !== undefined) {
+      const parsedDate = new Date(data.createdAt);
+      
+      // Kiểm tra xem chuỗi ngày tháng gửi lên có hợp lệ không
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error("INVALID_CREATED_AT_DATE");
+      }
+      
+      updateData.createdAt = parsedDate;
+    }
     let newProductsData = null;
     if (data.receivedProducts && Array.isArray(data.receivedProducts)) {
       newProductsData = data.receivedProducts.map((rp) => ({
