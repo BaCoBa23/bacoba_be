@@ -63,7 +63,7 @@ async function cleanOldBackups() {
         if (!files || files.length === 0) return;
 
         // Giữ lại các bản trong vòng 7 ngày gần nhất
-        const threshold = Date.now() - 7 * 24 * 60 * 60 * 1000; 
+        const threshold = Date.now() - 14 * 24 * 60 * 60 * 1000; 
 
         for (const file of files) {
             // Kiểm tra tên file bắt đầu bằng prefix và thời gian tạo cũ hơn threshold
