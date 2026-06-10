@@ -25,17 +25,28 @@ class ReceivedNoteService {
       }
     }
     
+    // Xử lý logic tìm kiếm nâng cao (ID Phiếu, Tên NCC, hoặc Mã Sản Phẩm)
     if (search) {
       const orConditions = [];
       
-      // Search by id (exact match if numeric)
+      // 1. Tìm kiếm theo ID Phiếu Nhập (Khớp chính xác nếu là số)
       const searchAsNumber = parseInt(search, 10);
       if (!isNaN(searchAsNumber)) {
         orConditions.push({ id: searchAsNumber });
       }
       
-      // Search by provider name
+      // 2. Tìm kiếm theo Tên Nhà Cung Cấp (Chứa chuỗi ký tự)
       orConditions.push({ provider: { name: { contains: search } } });
+      
+      // 3. THÊM MỚI: Tìm kiếm theo ID Sản Phẩm nằm trong Phiếu Nhập
+      // Sử dụng toán tử 'some' để quét qua mảng receivedProducts
+      orConditions.push({
+        receivedProducts: {
+          some: {
+            productId: { contains: search } // Tìm kiếm chứa chuỗi ký tự (hoặc đổi thành exact match nếu muốn)
+          }
+        }
+      });
       
       if (orConditions.length > 0) {
         where.OR = orConditions;
@@ -48,6 +59,7 @@ class ReceivedNoteService {
       where,
       orderBy,
     });
+
     const formattedData = data.map((note) => ({
       id: note.id,
       provider: note.provider
@@ -69,7 +81,7 @@ class ReceivedNoteService {
       receivedProducts: note.receivedProducts.map((rp) => ({
         id: rp.id,
         productId: rp.productId,
-        productName: rp.product?.name || "Sản Phẩm", // Đưa name của product ra ngoài
+        productName: rp.product?.name || "Sản Phẩm",
         addQuantity: rp.addQuantity,
         discount: rp.discount,
         total: rp.total,
@@ -114,6 +126,18 @@ class ReceivedNoteService {
       description: data.description || null,
       status: data.status || ReceiveNoteStatus.DRAFT,
     };
+
+    // 💡 XỬ LÝ TRƯỜNG CREATED_AT KHI TẠO PHIẾU
+    if (data.createdAt !== undefined && data.createdAt !== null) {
+      const parsedDate = new Date(data.createdAt);
+      
+      // Kiểm tra xem chuỗi ngày tháng gửi lên có hợp lệ không
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error("INVALID_CREATED_AT_DATE");
+      }
+      
+      receivedNoteData.createdAt = parsedDate;
+    }
 
     const receivedProductsData = (data.receivedProducts || []).map((rp) => ({
       productId: rp.productId,
