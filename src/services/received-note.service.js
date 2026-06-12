@@ -229,6 +229,47 @@ class ReceivedNoteService {
   async deleteReceivedNote(id) {
     return await receivedNoteRepo.delete(id);
   }
+
+  /**
+   * Tạo phiếu xuất trả lại hàng cho nhà cung cấp (Trừ tồn kho trực tiếp)
+   */
+  async createReturnNote(body) {
+    const { receivedProducts, ...noteData } = body;
+    
+    // 🛠 CHUẨN HÓA DỮ LIỆU: Ép kiểu dữ liệu từ payload sang đúng kiểu schema yêu cầu
+    const formattedNoteData = {
+      providerId: parseInt(noteData.providerId, 10), // Ép từ String "7" -> Int 7
+      phoneNumber: noteData.phoneNumber || null,
+      description: noteData.description || null,
+      discount: parseFloat(noteData.discount) || 0,
+      payedMoney: parseFloat(noteData.payedMoney) || 0,
+      debtMoney: parseFloat(noteData.debtMoney) || 0,
+      total: parseFloat(noteData.total) || 0,
+    };
+
+    // Ép kiểu chuỗi ngày tháng sang đối tượng Date hợp lệ cho Prisma
+    if (noteData.createdAt) {
+      const parsedDate = new Date(noteData.createdAt);
+      if (!isNaN(parsedDate.getTime())) {
+        formattedNoteData.createdAt = parsedDate;
+      }
+    }
+    
+    // Chuẩn hóa mảng sản phẩm trả về
+    const formattedProducts = (receivedProducts || []).map((rp) => ({
+      productId: rp.productId,
+      addQuantity: parseInt(rp.addQuantity, 10),
+      discount: parseFloat(rp.discount) || 0,
+      description: rp.description || null,
+      total: parseFloat(rp.total) || 0,
+    }));
+    
+    // Gọi sang repo với dữ liệu sạch đã được ép kiểu
+    return await receivedNoteRepo.createReturnWithTransaction(
+      formattedNoteData, 
+      formattedProducts
+    );
+  }
 }
 
 module.exports = new ReceivedNoteService();

@@ -77,6 +77,15 @@ class BillService {
       // Search by customer name
       orConditions.push({ customerName: { contains: search } });
       
+      // CHÈN THÊM VÀO ĐÂY: Search by product ID inside billProducts
+      orConditions.push({
+        billProducts: {
+          some: {
+            productId: { contains: search }
+          }
+        }
+      });
+      
       if (orConditions.length > 0) {
         where.OR = orConditions;
       }

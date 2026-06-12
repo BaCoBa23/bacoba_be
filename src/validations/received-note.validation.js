@@ -78,4 +78,38 @@ const validateUpdateReceivedNote = (data) => {
   return errors;
 };
 
-module.exports = { validateCreateReceivedNote, validateUpdateReceivedNote };
+const validateCreateReturnNote = (data) => {
+  const errors = {};
+
+  // Kiểm tra Nhà cung cấp
+  if (!data.providerId || !Number.isInteger(Number(data.providerId))) {
+    errors.providerId = ERROR_VALIDATIONS.RECEIVED_NOTE_PROVIDER_ID_REQUIRED;
+  }
+
+  // Kiểm tra tổng tiền hoàn trả
+  if (data.total === undefined || data.total === null || Number(data.total) < 0) {
+    errors.total = ERROR_VALIDATIONS.RECEIVED_NOTE_TOTAL_REQUIRED_GTE0;
+  }
+
+  // BẮT BUỘC phải có danh sách sản phẩm xuất trả
+  if (!data.receivedProducts || !Array.isArray(data.receivedProducts) || data.receivedProducts.length === 0) {
+    errors.receivedProducts = "Danh sách sản phẩm xuất trả không được để trống";
+  } else {
+    data.receivedProducts.forEach((rp, index) => {
+      if (!rp.productId) {
+        errors[`receivedProducts[${index}].productId`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_PRODUCT_ID_REQUIRED;
+      }
+      // Số lượng xuất trả bắt buộc phải lớn hơn 0
+      if (rp.addQuantity === undefined || Number(rp.addQuantity) <= 0) {
+        errors[`receivedProducts[${index}].addQuantity`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_QUANTITY_MUST_GT0;
+      }
+      if (rp.total === undefined || Number(rp.total) < 0) {
+        errors[`receivedProducts[${index}].total`] = ERROR_VALIDATIONS.RECEIVED_PRODUCT_TOTAL_MUST_GTE0;
+      }
+    });
+  }
+
+  return errors;
+};
+
+module.exports = { validateCreateReceivedNote, validateUpdateReceivedNote, validateCreateReturnNote };

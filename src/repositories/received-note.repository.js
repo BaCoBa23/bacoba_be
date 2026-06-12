@@ -168,10 +168,17 @@ class ReceivedNoteRepository {
         where: { id: noteId },
         include: { receivedProducts: true },
       });
-
+  
       if (!note) throw new Error("NOT_FOUND");
-      if (note.status === "cancelled") throw new Error("ALREADY_CANCELLED");
-
+      
+      // Chặn nếu phiếu đã ở trạng thái kết thúc trước đó
+      if (note.status === "cancelled" || note.status === "returned") {
+        throw new Error("ALREADY_PROCESSED");
+      }
+  
+      // Xác định trạng thái mới dựa trên trạng thái hiện tại
+      const nextStatus = note.status === "confirm" ? "returned" : "cancelled";
+  
       // 2. Nếu trạng thái là CONFIRM, tiến hành ĐẢO NGƯỢC số liệu
       if (note.status === "confirm") {
         // 2.1 Cập nhật lại công nợ Nhà cung cấp (Trừ đi)
@@ -182,7 +189,7 @@ class ReceivedNoteRepository {
             debtTotal: { decrement: note.debtMoney },
           },
         });
-
+  
         // 2.2 Cập nhật lại tồn kho sản phẩm (Trừ đi)
         for (const rp of note.receivedProducts) {
           const product = await tx.product.update({
@@ -191,7 +198,7 @@ class ReceivedNoteRepository {
               quantity: { decrement: rp.addQuantity },
             },
           });
-
+  
           // Nếu có sản phẩm cha, trừ luôn kho sản phẩm cha
           if (product.parentId) {
             await tx.product.update({
@@ -203,14 +210,14 @@ class ReceivedNoteRepository {
           }
         }
       }
-
-      // 3. Cập nhật trạng thái phiếu về CANCELLED (Áp dụng cho cả DRAFT và CONFIRM)
-      const cancelledNote = await tx.receivedNote.update({
+  
+      // 3. Cập nhật trạng thái phiếu theo trạng thái mới đã xác định (returned hoặc cancelled)
+      const updatedNote = await tx.receivedNote.update({
         where: { id: noteId },
-        data: { status: "cancelled" },
+        data: { status: nextStatus },
       });
-
-      return cancelledNote;
+  
+      return updatedNote;
     });
   }
 
@@ -307,6 +314,94 @@ class ReceivedNoteRepository {
       where: { id },
     });
   }
+
+  // =========================================================================
+// TRANSACTIONAL OPERATIONS (Trong file received-note.repository.js)
+// =========================================================================
+
+async createReturnWithTransaction(noteData, receivedProductsData) {
+  return await prisma.$transaction(async (tx) => {
+    
+    // 1. KIỂM TRA TỒN KHO THỰC TẾ TRONG BẢNG PRODUCT TRƯỚC KHI XUẤT TRẢ
+    if (receivedProductsData && receivedProductsData.length > 0) {
+      for (const rp of receivedProductsData) {
+        const currentProduct = await tx.product.findUnique({
+          where: { id: rp.productId },
+          select: { name: true, quantity: true },
+        });
+
+        if (!currentProduct) {
+          throw new Error(`PRODUCT_NOT_FOUND:${rp.productId}`);
+        }
+
+        // Nếu số lượng xuất trả lớn hơn số lượng thực tế đang có trong kho -> Báo lỗi
+        if (currentProduct.quantity < rp.addQuantity) {
+          throw new Error(`EXCEEDS_STOCK:${currentProduct.name || rp.productId}`);
+        }
+      }
+    }
+
+    // 2. TẠO PHIẾU XUẤT TRẢ (Lưu trữ danh sách sản phẩm hoàn trả)
+    const note = await tx.receivedNote.create({
+      data: {
+        ...noteData,
+        status: "returned", // Trạng thái trả hàng/hủy theo nghiệp vụ của bạn
+        receivedProducts: {
+          create: receivedProductsData.map(rp => ({
+            productId: rp.productId,
+            addQuantity: parseInt(rp.addQuantity, 10),
+            discount: parseFloat(rp.discount) || 0,
+            description: rp.description || null,
+            total: parseFloat(rp.total),
+          })),
+        },
+      },
+      include: {
+        provider: true,
+        receivedProducts: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    // 3. ĐẢO NGƯỢC SỐ LIỆU NHÀ CUNG CẤP: GIẢM TỔNG TIỀN & GIẢM NỢ
+    await tx.provider.update({
+      where: { id: note.providerId },
+      data: {
+        total: { decrement: note.total },         // Trừ đi tổng tiền đơn hàng trả
+        debtTotal: { decrement: note.debtMoney }, // Trừ đi số tiền còn nợ từ đơn này
+      },
+    });
+
+    // 4. ĐẢO NGƯỢC KHO HÀNG: TRỪ SỐ LƯỢNG SẢN PHẨM CON & SẢN PHẨM CHA
+    if (receivedProductsData && receivedProductsData.length > 0) {
+      for (const rp of receivedProductsData) {
+        
+        // Trừ kho của sản phẩm biến thể hiện tại (Sản phẩm con)
+        const updatedProduct = await tx.product.update({
+          where: { id: rp.productId },
+          data: {
+            quantity: { decrement: parseInt(rp.addQuantity, 10) },
+          },
+        });
+
+        // Nếu sản phẩm này có sản phẩm cha (parentId), tiến hành trừ đồng bộ kho của sản phẩm cha
+        if (updatedProduct.parentId) {
+          await tx.product.update({
+            where: { id: updatedProduct.parentId },
+            data: {
+              quantity: { decrement: parseInt(rp.addQuantity, 10) },
+            },
+          });
+        }
+      }
+    }
+
+    return note;
+  });
+}
 }
 
 module.exports = new ReceivedNoteRepository();

@@ -2,6 +2,7 @@ const receivedNoteService = require("../services/received-note.service");
 const {
   validateCreateReceivedNote,
   validateUpdateReceivedNote,
+  validateCreateReturnNote,
 } = require("../validations/received-note.validation");
 const { MESSAGES, ERROR_MESSAGES, SUCCESS_MESSAGES } = require("../constants");
 
@@ -25,7 +26,7 @@ class ReceivedNoteController {
     try {
       const { id } = req.params;
       const receivedNote = await receivedNoteService.getReceivedNoteById(
-        parseInt(id, 10),
+        parseInt(id, 10)
       );
 
       if (!receivedNote) {
@@ -50,7 +51,7 @@ class ReceivedNoteController {
       const { providerId } = req.params;
       const result = await receivedNoteService.getReceivedNotesByProviderId(
         providerId,
-        req.query,
+        req.query
       );
 
       return res.success({
@@ -77,7 +78,7 @@ class ReceivedNoteController {
       }
 
       const receivedNote = await receivedNoteService.createReceivedNote(
-        req.body,
+        req.body
       );
 
       return res.success({
@@ -102,7 +103,7 @@ class ReceivedNoteController {
       const { id } = req.params; // Lấy ID từ URL
 
       const confirmedNote = await receivedNoteService.confirmNote(
-        parseInt(id, 10),
+        parseInt(id, 10)
       );
 
       return res.success({
@@ -140,7 +141,7 @@ class ReceivedNoteController {
       }
 
       const cancelledNote = await receivedNoteService.cancelReceivedNote(
-        parseInt(id, 10),
+        parseInt(id, 10)
       );
 
       return res.success({
@@ -183,7 +184,7 @@ class ReceivedNoteController {
 
       const receivedNote = await receivedNoteService.updateReceivedNote(
         parseInt(id, 10),
-        req.body,
+        req.body
       );
 
       if (!receivedNote) {
@@ -223,6 +224,57 @@ class ReceivedNoteController {
         return res.error({
           message: ERROR_MESSAGES.RECEIVED_NOTE_NOT_FOUND,
           status: 404,
+        });
+      }
+      return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });
+    }
+  };
+
+  createReturn = async (req, res) => {
+    try {
+      // 💡 NHỚ: Đảm bảo đã import validateCreateReturnNote ở đầu file controller
+      const errors = validateCreateReturnNote(req.body);
+
+      if (Object.keys(errors).length > 0) {
+        return res.error({
+          message: MESSAGES.VALIDATION_ERROR,
+          status: 400,
+          errors,
+        });
+      }
+
+      const returnNote = await receivedNoteService.createReturnNote(req.body);
+
+      return res.success({
+        message: "Tạo phiếu trả hàng nhà cung cấp và cập nhật kho thành công",
+        data: returnNote,
+        status: 201,
+      });
+    } catch (error) {
+      console.error("Create Return Note Error:", error);
+
+      // Bắt lỗi vượt quá số lượng tồn kho
+      if (error.message.startsWith("EXCEEDS_STOCK:")) {
+        const productName = error.message.split(":")[1];
+        return res.error({
+          message: `Số lượng xuất trả cho sản phẩm "${productName}" vượt quá số lượng hiện có trong kho!`,
+          status: 400,
+        });
+      }
+
+      // Bắt lỗi không tìm thấy sản phẩm cụ thể
+      if (error.message.startsWith("PRODUCT_NOT_FOUND:")) {
+        const productId = error.message.split(":")[1];
+        return res.error({
+          message: `Sản phẩm có ID [${productId}] không tồn tại trên hệ thống.`,
+          status: 400,
+        });
+      }
+
+      if (error.code === "P2025") {
+        return res.error({
+          message: "Nhà cung cấp không tồn tại trên hệ thống",
+          status: 400,
         });
       }
       return res.error({ message: ERROR_MESSAGES.SERVER_ERROR });

@@ -6,6 +6,7 @@ const receivedProductController = require("../controllers/received-product.contr
 // Received Note routes
 router.get("/", receivedNoteController.getList);
 router.post("/", receivedNoteController.create);
+router.post("/create-return", receivedNoteController.createReturn);
 router.get("/provider/:providerId", receivedNoteController.getByProviderId);
 router.get("/:id", receivedNoteController.getById);
 router.put("/:id", receivedNoteController.update);
